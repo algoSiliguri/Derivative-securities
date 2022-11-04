@@ -5,6 +5,7 @@ from scipy.interpolate import interp1d
 from scipy.stats import norm
 from utilities import Utilities
 import math as m
+import datetime as dt
 import os
 
 class BSM:
@@ -31,7 +32,7 @@ class BSM:
         
     def CallOptionValue(S, K, r, sigma, T, q):
         d1 = (m.log(S/K) + (r -q + 0.5 * sigma**2) * T)/(sigma * m.sqrt(T))
-       	d2 = d1 - sigma * m.sqrt(T)
+        d2 = d1 - sigma * m.sqrt(T)
         return S *m.exp(-q*T) * norm.cdf(d1) - K * m.exp(-r*T) * norm.cdf(d2)     
 
 
@@ -52,7 +53,8 @@ del df_od['index']
 
 file_path = os.getcwd() + "/project/SPXDaily1950.csv"
 df = pd.read_csv(file_path)
-df_SPX = df.loc[df['Date'] == '12/08/2015']
+df['Date'] = pd.TimedeltaIndex(df['Date'], unit='d') + dt.datetime(1899,12,30)
+df_SPX = df.loc[df['Date'] == pd.Timestamp(2015,8,12)]
 
 file_path = os.getcwd() + "/project/SPXDivYield.csv"
 df = pd.read_csv(file_path)
@@ -60,7 +62,8 @@ df_Div = df.loc[df['Date'] == '12/08/2015']
 
 ## Define input parameters
 SPX_close = df_SPX.values[0,4]
-ind = df_od[abs(df_od['Strike']-SPX_close)==min(abs(df_od['Strike']-SPX_close))].sort_values(by=['Volume'], ascending=False).head(1)
+# Two options with same strike closest to on the money; Choose option with higher trading volume
+ind = df_od[abs(df_od['Strike']-SPX_close)==min(abs(df_od['Strike']-SPX_close))].sort_values(by=['Volume'], ascending=False).index[0]
 
 S	= SPX_close
 K	= df_od.values[ind,3]
