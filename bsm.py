@@ -28,7 +28,6 @@ class BSM:
         Y = df_data['Rate']
 
         interpolate_x = self.days_to_expiry
-        self.days_to_expiry = self.days_to_expiry / 365
         y_interp = interp1d(X, Y)
         self.interest_rates = y_interp(interpolate_x)/100
 
@@ -81,6 +80,7 @@ class BSM:
         self.calc_interest_rates()
         self.calc_implied_vol()
         self.calc_spotprice_SPX()
+        self.days_to_expiry = self.days_to_expiry / 365
 
         d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend +
               0.5 * self.iv**2) * self.days_to_expiry) / (self.iv * np.sqrt(self.days_to_expiry))
