@@ -3,8 +3,9 @@
 import os
 from jproperties import Properties
 
+
 class Utilities:
-    
+
     ## A static method to get the file path for the csv
     @staticmethod
     def getFilePath(sub_path):
@@ -21,4 +22,3 @@ class Utilities:
             configs.load(read_prop)
 
         return configs
-
