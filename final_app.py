@@ -1,9 +1,6 @@
 import streamlit as st
 from bsm import BSM
 from utilities import Utilities
-import sys
-
-
 
 ###sidebar
 
@@ -35,7 +32,7 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     #BSM.calc_interest_rates(days_to_expiry)
     bsm.calc_interest_rates()
-    st.metric("Interest rate (%)",round(bsm.interest_rates,5))
+    st.metric("Interest rate (%)",round(bsm.interest_rates*100,5))
 
 with col2:
     st.metric("Dividend Yield (%)",1.903)
