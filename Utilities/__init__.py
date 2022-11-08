@@ -3,7 +3,7 @@
 import os
 from jproperties import Properties
 import pandas as pd
-
+from scipy.stats import norm
 
 class Utilities:
 
@@ -33,3 +33,8 @@ class Utilities:
         df = df.loc[(df['Trade dAte'] == '12/08/2015') & (df["Put=1 Call=0"] == 0)]
         df.loc[:, 'Strike x 1000'] = df['Strike x 1000'].div(1000)
         return [i for i in df['Strike x 1000']]
+
+    ## A static method to retun normal distribution 
+    @staticmethod
+    def N(x):
+        return norm.cdf(x)

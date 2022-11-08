@@ -39,7 +39,7 @@ with col2:
 
 with col3:
     #BSM.calc_option_value()
-    st.metric("Option Price ($)",round(bsm.calc_option_value(),5),3)
+    st.metric("Option Price ($)",round(bsm.calc_option_value(),5))
 
 with col4:
-    st.metric("Bid-ask spread",10,2)
+    st.metric("Bid-ask spread",10)

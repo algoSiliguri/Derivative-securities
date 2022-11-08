@@ -1,6 +1,5 @@
 import pandas as pd
 from scipy.interpolate import interp1d
-from scipy.stats import norm
 import numpy as np
 import datetime as dt
 import Utilities as ut
@@ -87,4 +86,4 @@ class BSM:
         d2 = d1 - self.iv * np.sqrt(self.days_to_expiry)
         var = self.__option_type()
 
-        return var*(self.spot_price * np.exp(-self.dividend * self.days_to_expiry) * norm.cdf(self.call_or_put*d1) - self.strike_price * np.exp(-self.interest_rates * self.days_to_expiry) * norm.cdf(self.call_or_put*d2))
+        return var*(self.spot_price * np.exp(-self.dividend * self.days_to_expiry) * ut.Utilities.N(var*d1) - self.strike_price * np.exp(- self.interest_rates* self.days_to_expiry) * ut.Utilities.N(var*d2))
