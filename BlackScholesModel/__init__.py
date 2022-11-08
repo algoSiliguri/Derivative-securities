@@ -3,7 +3,7 @@ from scipy.interpolate import interp1d
 from scipy.stats import norm
 import numpy as np
 import datetime as dt
-from utilities import Utilities
+import Utilities as ut
 
 
 class BSM:
@@ -21,7 +21,7 @@ class BSM:
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
 
-        file_path = Utilities.getFilePath("interest_rates")
+        file_path = ut.Utilities.getFilePath("interest_rates")
         df = pd.read_csv(file_path)
         df_data = df.loc[df['Date'] == '12/08/2015']
         X = df_data['Days']
@@ -34,7 +34,7 @@ class BSM:
     ## Calculating the dividend yield
     def calc_dividend(self):
 
-        file_path = Utilities.getFilePath("dividend")
+        file_path = ut.Utilities.getFilePath("dividend")
         df = pd.read_csv(file_path)
         df_Div = df.loc[df['Date'] == '12/08/2015']
         self.dividend = df_Div.values[0, 2]/100
@@ -42,7 +42,7 @@ class BSM:
     ## Calculating spot price of SPX on '12/08/2015'
     def calc_spotprice_SPX(self):
 
-        file_path = Utilities.getFilePath("SPX")
+        file_path = ut.Utilities.getFilePath("SPX")
         df = pd.read_csv(file_path)
         df['Date'] = pd.TimedeltaIndex(
             df['Date'], unit='d') + dt.datetime(1899, 12, 30)
@@ -52,7 +52,7 @@ class BSM:
     ## Calculating implied volatility of a specific strike
     def calc_implied_vol(self):
 
-        file_path = Utilities.getFilePath("iv")
+        file_path = ut.Utilities.getFilePath("iv")
         df = pd.read_csv(file_path)
         df_od = df.loc[df['Trade dAte'] == '12/08/2015'].copy()
         df_od.loc[:, 'Strike x 1000'] = df_od['Strike x 1000'].div(1000)

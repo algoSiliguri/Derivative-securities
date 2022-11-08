@@ -1,6 +1,6 @@
 import streamlit as st
-from bsm import BSM
-from utilities import Utilities
+import BlackScholesModel as bsm
+import Utilities as ut
 
 ###sidebar
 
@@ -13,13 +13,13 @@ st.sidebar.info('Trade date : 12/08/2015', icon="ℹ️")
 
 days_to_expiry = st.sidebar.slider("Days to Expiry", value=31, min_value=7, max_value=100)
 strike_price = st.sidebar.number_input("Enter a strike price for your option (750-2500)", min_value=750, max_value=2500)
-if strike_price not in Utilities.get_strike_prices():
-        st.sidebar.error("Strike price not in given data!!! Please renter")
+if strike_price not in ut.Utilities.get_strike_prices():
+        st.sidebar.error("Strike price not in given data!!! Please renter!!!")
         st.stop()
 option_type = st.sidebar.radio("Select your option type - Call-> 0 | Put-> 1",(0,1))
 
 
-bsm = BSM(days_to_expiry, strike_price, option_type)
+bsm = bsm.BSM(days_to_expiry, strike_price, option_type)
 
 ###main_section
 #title
