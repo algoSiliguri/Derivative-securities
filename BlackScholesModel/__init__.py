@@ -1,9 +1,8 @@
 import pandas as pd
 from scipy.interpolate import interp1d
-from scipy.stats import norm
 import numpy as np
 import datetime as dt
-from utilities import Utilities
+import Utilities as ut
 
 
 class BSM:
@@ -21,21 +20,20 @@ class BSM:
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
 
-        file_path = Utilities.getFilePath("interest_rates")
+        file_path = ut.Utilities.getFilePath("interest_rates")
         df = pd.read_csv(file_path)
         df_data = df.loc[df['Date'] == '12/08/2015']
         X = df_data['Days']
         Y = df_data['Rate']
 
         interpolate_x = self.days_to_expiry
-        self.days_to_expiry = self.days_to_expiry / 365
         y_interp = interp1d(X, Y)
         self.interest_rates = y_interp(interpolate_x)/100
 
     ## Calculating the dividend yield
     def calc_dividend(self):
 
-        file_path = Utilities.getFilePath("dividend")
+        file_path = ut.Utilities.getFilePath("dividend")
         df = pd.read_csv(file_path)
         df_Div = df.loc[df['Date'] == '12/08/2015']
         self.dividend = df_Div.values[0, 2]/100
@@ -43,7 +41,7 @@ class BSM:
     ## Calculating spot price of SPX on '12/08/2015'
     def calc_spotprice_SPX(self):
 
-        file_path = Utilities.getFilePath("SPX")
+        file_path = ut.Utilities.getFilePath("SPX")
         df = pd.read_csv(file_path)
         df['Date'] = pd.TimedeltaIndex(
             df['Date'], unit='d') + dt.datetime(1899, 12, 30)
@@ -53,7 +51,7 @@ class BSM:
     ## Calculating implied volatility of a specific strike
     def calc_implied_vol(self):
 
-        file_path = Utilities.getFilePath("iv")
+        file_path = ut.Utilities.getFilePath("iv")
         df = pd.read_csv(file_path)
         df_od = df.loc[df['Trade dAte'] == '12/08/2015'].copy()
         df_od.loc[:, 'Strike x 1000'] = df_od['Strike x 1000'].div(1000)
@@ -81,10 +79,11 @@ class BSM:
         self.calc_interest_rates()
         self.calc_implied_vol()
         self.calc_spotprice_SPX()
+        self.days_to_expiry = self.days_to_expiry / 365
 
         d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend +
               0.5 * self.iv**2) * self.days_to_expiry) / (self.iv * np.sqrt(self.days_to_expiry))
         d2 = d1 - self.iv * np.sqrt(self.days_to_expiry)
         var = self.__option_type()
 
-        return var*(self.spot_price * np.exp(-self.dividend * self.days_to_expiry) * norm.cdf(self.call_or_put*d1) - self.strike_price * np.exp(-self.interest_rates * self.days_to_expiry) * norm.cdf(self.call_or_put*d2))
+        return var*(self.spot_price * np.exp(-self.dividend * self.days_to_expiry) * ut.Utilities.N(var*d1) - self.strike_price * np.exp(- self.interest_rates* self.days_to_expiry) * ut.Utilities.N(var*d2))
