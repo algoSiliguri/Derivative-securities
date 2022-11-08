@@ -3,5 +3,4 @@ scipy
 numpy
 datetime
 jproperties
-bsm
-utilities
+streamlit
