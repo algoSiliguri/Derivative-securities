@@ -6,6 +6,7 @@ import Utilities as ut
 
 
 class BSM:
+    check_iv = False
 
     def __init__(self, days_to_expiry, strike_price, call_or_put):
 
@@ -16,6 +17,29 @@ class BSM:
         self.interest_rates = 0
         self.dividend = 0
         self.iv = 0
+
+    ## Determine which option formula to use
+    def __option_type(self):
+
+        if self.call_or_put == 0:
+            return 1
+        else:
+            return -1
+
+    ## Determine the required options metric data
+    def __cal_OM_data(self):
+        file_path = ut.Utilities.getFilePath("iv")
+        df = pd.read_csv(file_path)
+        df_od = df.loc[df['Trade dAte'] == '12/08/2015'].copy()
+        df_od.loc[:, 'Strike x 1000'] = df_od['Strike x 1000'].div(1000)
+        df_od = df_od.rename(columns={"Strike x 1000": "Strike"})
+        df_od = df_od.reset_index()
+        del df_od['index']
+        df_iv = df_od.loc[(df_od['Strike'] == self.strike_price) & (
+            df_od['Put=1 Call=0'] == self.call_or_put)]
+        df_iv = df_iv.loc[df_iv["Open Interest"]
+                          == df_iv["Open Interest"].max()]
+        return df_iv
 
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
@@ -50,27 +74,14 @@ class BSM:
 
     ## Calculating implied volatility of a specific strike
     def calc_implied_vol(self):
+        if not BSM.check_iv:
+            df_iv = self.__cal_OM_data()
+            self.iv = df_iv.iloc[0][7]
 
-        file_path = ut.Utilities.getFilePath("iv")
-        df = pd.read_csv(file_path)
-        df_od = df.loc[df['Trade dAte'] == '12/08/2015'].copy()
-        df_od.loc[:, 'Strike x 1000'] = df_od['Strike x 1000'].div(1000)
-        df_od = df_od.rename(columns={"Strike x 1000": "Strike"})
-        df_od = df_od.reset_index()
-        del df_od['index']
-        df_iv = df_od.loc[(df_od['Strike'] == self.strike_price) & (
-            df_od['Put=1 Call=0'] == self.call_or_put)]
-        df_iv = df_iv.loc[df_iv["Open Interest"]
-                          == df_iv["Open Interest"].max()]
-        self.iv = df_iv.iloc[0][7]
-
-    ## Determine which option formula to use
-    def __option_type(self):
-
-        if self.call_or_put == 0:
-            return 1
-        else:
-            return -1
+    ## Get the mid-pont of strikes bid-ask spread
+    def get_price(self):
+        df_iv = self.__cal_OM_data()
+        return (df_iv.values[0,4] + df_iv.values[0,5])/2
 
     ## Calculating options value
     def calc_option_value(self):
