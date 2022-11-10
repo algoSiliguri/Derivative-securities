@@ -4,7 +4,6 @@ import numpy as np
 import datetime as dt
 import Utilities as ut
 
-
 class BSM:
 
     def __init__(self, days_to_expiry, strike_price, call_or_put):
@@ -12,6 +11,7 @@ class BSM:
         self.days_to_expiry = days_to_expiry
         self.strike_price = strike_price
         self.call_or_put = call_or_put
+        self.years_to_expiry = days_to_expiry/365
         self.spot_price = 0
         self.interest_rates = 0
         self.dividend = 0
@@ -43,25 +43,18 @@ class BSM:
 
         file_path = ut.Utilities.getFilePath("SPX")
         df = pd.read_csv(file_path)
-        df['Date'] = pd.TimedeltaIndex(
-            df['Date'], unit='d') + dt.datetime(1899, 12, 30)
-        df_SPX = df.loc[df['Date'] == pd.Timestamp(2015, 8, 12)]
-        self.spot_price = df_SPX.iloc[0][1]
+        df['Date'] = pd.TimedeltaIndex(df['Date'], unit='d') + dt.datetime(1899,12,30)
+        df_SPX = df.loc[df['Date'] == pd.Timestamp(2015,8,12)]
+        self.spot_price = df_SPX.iloc[0,5]
 
     ## Calculating implied volatility of a specific strike
     def calc_implied_vol(self):
 
         file_path = ut.Utilities.getFilePath("iv")
         df = pd.read_csv(file_path)
-        df_od = df.loc[df['Trade dAte'] == '12/08/2015'].copy()
-        df_od.loc[:, 'Strike x 1000'] = df_od['Strike x 1000'].div(1000)
-        df_od = df_od.rename(columns={"Strike x 1000": "Strike"})
-        df_od = df_od.reset_index()
-        del df_od['index']
-        df_iv = df_od.loc[(df_od['Strike'] == self.strike_price) & (
-            df_od['Put=1 Call=0'] == self.call_or_put)]
-        df_iv = df_iv.loc[df_iv["Open Interest"]
-                          == df_iv["Open Interest"].max()]
+        df_od = df.loc[df['Trade dAte'] == '12/08/2015']
+        df_iv = df_od.loc[(df_od['Strike x 1000'] == self.strike_price*1000) & (df_od['Put=1 Call=0']==self.call_or_put)]
+        df_iv = df_iv.loc[df_iv["Open Interest"] == df_iv["Open Interest"].max()]
         self.iv = df_iv.iloc[0][7]
 
     ## Determine which option formula to use
@@ -79,11 +72,58 @@ class BSM:
         self.calc_interest_rates()
         self.calc_implied_vol()
         self.calc_spotprice_SPX()
-        self.days_to_expiry = self.days_to_expiry / 365
 
-        d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend +
-              0.5 * self.iv**2) * self.days_to_expiry) / (self.iv * np.sqrt(self.days_to_expiry))
-        d2 = d1 - self.iv * np.sqrt(self.days_to_expiry)
+        d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend + 0.5 * self.iv**2) * self.years_to_expiry) / (self.iv * np.sqrt(self.years_to_expiry))
+        d2 = d1 - self.iv * np.sqrt(self.years_to_expiry)
         var = self.__option_type()
+        
+        #print(self.strike_price, self.spot_price, self.interest_rates, self.dividend, self.iv, self.days_to_expiry, self.call_or_put)
 
-        return var*(self.spot_price * np.exp(-self.dividend * self.days_to_expiry) * ut.Utilities.N(var*d1) - self.strike_price * np.exp(- self.interest_rates* self.days_to_expiry) * ut.Utilities.N(var*d2))
+        #print(d1, d2)
+
+        return var*(self.spot_price * np.exp(-self.dividend * self.years_to_expiry) * ut.Utilities.N(var*d1) 
+                                  - self.strike_price * np.exp(-self.interest_rates * self.years_to_expiry) * ut.Utilities.N(var*d2))
+
+    def imp_vol_option_value(self,v):
+        
+        self.calc_dividend()
+        self.calc_interest_rates()
+        self.calc_spotprice_SPX()
+        
+        #print(self.strike_price, self.spot_price, self.interest_rates, self.dividend, self.iv, self.days_to_expiry, self.call_or_put)
+        
+        d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend + 0.5 * v**2) * self.years_to_expiry) / (v * np.sqrt(self.years_to_expiry))
+        d2 = d1 - v * np.sqrt(self.years_to_expiry)
+        var = self.__option_type()
+        
+        #print(d1, d2)
+
+        return var*(self.spot_price * np.exp(-self.dividend * self.years_to_expiry) * ut.Utilities.N(var*d1) 
+                                  - self.strike_price * np.exp(-self.interest_rates * self.years_to_expiry) * ut.Utilities.N(var*d2))
+    
+    def calc_vega(self,v):
+        
+        d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend + 0.5 * v**2) * self.years_to_expiry) / (v * np.sqrt(self.years_to_expiry))
+        return self.spot_price * ut.Utilities.n(d1) * np.sqrt(self.years_to_expiry)
+    
+    def imp_vol_solver(self):
+        
+        # solve for implied volatility using Newton-Raphson algorithm
+        file_path = ut.Utilities.getFilePath("iv")
+        df = pd.read_csv(file_path)
+        df_od = df.loc[df['Trade dAte'] == '12/08/2015']
+        df_iv = df_od.loc[(df_od['Strike x 1000'] == self.strike_price*1000) & (df_od['Put=1 Call=0']==self.call_or_put)]
+        
+        niter = 1000
+        tol = 1.0e-5
+        v = 0.5 # initial volatility guess
+        self.mid_bid_ask = np.mean(df_iv[['Bid Price', 'Ask Price']].loc[df_iv["Volume"]==df_iv["Volume"].max()].values)
+        for i in range(0, niter):
+            price = self.imp_vol_option_value(v)
+            vega = self.calc_vega(v)
+            diff = self.mid_bid_ask - price
+            if (abs(diff) < tol):
+                #print(i) # Check on how fast function converges
+                return v
+            v = v + diff/vega
+        return v # exit function if hasn't converged after max iterations

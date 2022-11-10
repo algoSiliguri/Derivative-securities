@@ -43,3 +43,7 @@ with col3:
 
 with col4:
     st.metric("Bid-ask spread",10)
+    
+# bsm = bsm.BSM(30, 2090, 0)
+# print(bsm.calc_option_value())
+# print(bsm.imp_vol_solver())
