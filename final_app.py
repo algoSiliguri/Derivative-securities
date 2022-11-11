@@ -18,13 +18,13 @@ option_type = st.sidebar.radio(
     "Select your option type - Call-> 0 | Put-> 1", (0, 1))
 
 strike_price = st.sidebar.number_input(
-    "Enter a strike price for your option (750-2500)", min_value=750, max_value=2500,value= 2080, step=10)
+    "Enter a strike price for your option (750-2500)", min_value=750, max_value=2500, value=2080, step=10)
 
 if strike_price not in ut.Utilities.get_strike_prices(option_type):
     st.sidebar.error("Strike price not in given data!!! Please renter!!!")
     st.stop()
 
-check_NRIV = st.sidebar.checkbox("Newton Raphson Volatility Solver")
+bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
@@ -39,7 +39,7 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     bsm.calc_interest_rates()
-    st.metric("Interest rate (%)", round(bsm.interest_rates*100, 3))
+    st.metric("Interest rate (%)", round(bsm.interest_rates * 100, 3))
 
 with col2:
     bsm.calc_dividend()
@@ -47,20 +47,21 @@ with col2:
 
 with col3:
     bsm.calc_spotprice_SPX()
-    st.metric("SPX Spot Price", round(bsm.spot_price,2))
+    st.metric("SPX Spot Price", round(bsm.spot_price, 2))
 
 with col4:
-    st.metric("BSM Option Price($)", round(bsm.calc_option_value(), 3))
+    bsm.calc_implied_vol()
+    st.metric("Given Option IV", round(bsm.iv, 3))
 
 with col5:
-    st.metric("Given Option IV", round(bsm.iv,3))
+    bsm.calc_option_value()
+    st.metric("BSM Option Price($)", round(bs.BSM.bsm_option_price, 3))
 
-col1, col2, col3, col4, col5 = st.columns(5)
 with col4:
-    if check_NRIV:
-        st.metric("Given Option Price($)", round(bsm.mid_bid_ask,3))
-
-with col5:
-    if check_NRIV:
+    if bs.BSM.check_iv:
         bsm.imp_vol_solver()
-        st.metric("Calculated Option IV", round(bsm.iv,3))
+        st.metric("Calculated Option IV", round(bsm.brent_iv, 3))
+
+with col5:
+    if bs.BSM.check_iv:
+        st.metric("Given Option Price($)", round(bsm.mid_bid_ask, 3))

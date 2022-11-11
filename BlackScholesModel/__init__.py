@@ -1,22 +1,25 @@
 import pandas as pd
 from scipy.interpolate import interp1d
+from scipy.optimize import minimize_scalar
 import numpy as np
 import datetime as dt
 import Utilities as ut
 
 
 class BSM:
+    check_iv = False
+    bsm_option_price = 0
 
     def __init__(self, days_to_expiry, strike_price, call_or_put):
 
         self.days_to_expiry = days_to_expiry
         self.strike_price = strike_price
         self.call_or_put = call_or_put
-        self.years_to_expiry = days_to_expiry/365
         self.spot_price = 0
         self.interest_rates = 0
         self.dividend = 0
         self.iv = 0
+        self.brent_iv = 0.01
         self.mid_bid_ask = 0
 
     ## Determine which option formula to use
@@ -28,22 +31,27 @@ class BSM:
             return -1
 
     ## A function to return d1 in BSM
-    def __get_d1(self, vol=0):
+    def __get_d1(self):
 
-        if vol == 0:
-            self.calc_implied_vol()
+        if BSM.check_iv:
+            iv = self.brent_iv
         else:
-            self.iv = vol
+            iv = self.iv
 
         d1 = (np.log(self.spot_price/self.strike_price) + (self.interest_rates - self.dividend +
-              0.5 * self.iv**2) * self.years_to_expiry) / (self.iv * np.sqrt(self.years_to_expiry))
+              0.5 * iv**2) * self.days_to_expiry/365) / (iv * np.sqrt(self.days_to_expiry/365))
         return d1
 
     ## A function to return d2 in BSM
     def __get_d2(self):
 
+        if BSM.check_iv:
+            iv = self.brent_iv
+        else:
+            iv = self.iv
+
         d1 = self.__get_d1()
-        d2 = d1 - self.iv * np.sqrt(self.years_to_expiry)
+        d2 = d1 - iv * np.sqrt(self.days_to_expiry/365)
         return d2
 
     ## Find the option mteric data for the given date; drop all -99.99 IV data
@@ -55,12 +63,6 @@ class BSM:
         df_iv = df_iv.loc[df_iv["Open Interest"]
                           == df_iv["Open Interest"].max()]
         return df_iv
-
-    ## A function to calcultae vega
-    def __calc_vega(self, vol):
-
-        d1 = self.__get_d1(vol)
-        return self.spot_price * ut.Utilities.n(d1) * np.sqrt(self.years_to_expiry)
 
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
@@ -101,29 +103,25 @@ class BSM:
         self.iv = df_iv.iloc[0, 7]
 
     ## Calculating options value
-    def calc_option_value(self, vol=0):
+    def calc_option_value(self):
 
-        d1 = self.__get_d1(vol)
+        d1 = self.__get_d1()
         d2 = self.__get_d2()
         var = self.__option_type()
 
-        return var*(self.spot_price * np.exp(-self.dividend * self.years_to_expiry) * ut.Utilities.N(var*d1)
-                    - self.strike_price * np.exp(-self.interest_rates * self.years_to_expiry) * ut.Utilities.N(var*d2))
+        option_price = var*(self.spot_price * np.exp(-self.dividend * self.days_to_expiry/365) * ut.Utilities.N(var*d1)
+                            - self.strike_price * np.exp(-self.interest_rates * self.days_to_expiry/365) * ut.Utilities.N(var*d2))
 
-    ##  A function to find IV using Netown Raphsen algorithm
+        if not BSM.check_iv:
+            BSM.bsm_option_price = option_price
+
+        return option_price
+
+    ##  A function to find IV using Brent's algorithm
     def imp_vol_solver(self):
 
-        # solve for implied volatility using Newton-Raphson algorithm
-        df_iv = self.__get_om_data()
-        niter = 1000
-        tol = 1.0e-5
-        v = 0.5  # initial volatility guess
-        self.mid_bid_ask = np.mean(df_iv[['Bid Price', 'Ask Price']].values)
-        for i in range(0, niter):
-            price = self.calc_option_value(v)
-            vega = self.__calc_vega(v)
-            diff = self.mid_bid_ask - price
-            if (abs(diff) < tol):
-                return v
-            v = v + diff/vega
-        return v  # exit function if hasn't converged after max iterations
+        def option_obj(vol):
+            self.brent_iv = vol
+            return abs(self.calc_option_value() - self.mid_bid_ask)
+
+        minimize_scalar(option_obj, bounds=(0.01, 3), method="bounded")

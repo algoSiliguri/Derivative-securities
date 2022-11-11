@@ -54,9 +54,3 @@ class Utilities:
     def N(x):
 
         return norm.cdf(x)
-
-    ## A static method to return normal distribution pdf
-    @staticmethod
-    def n(x):
-
-        return norm.pdf(x)
