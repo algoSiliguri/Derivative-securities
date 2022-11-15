@@ -4,6 +4,7 @@ import os
 from jproperties import Properties
 import pandas as pd
 from scipy.stats import norm
+import streamlit as st
 
 
 class Utilities:
@@ -54,3 +55,10 @@ class Utilities:
     def N(x):
 
         return norm.cdf(x)
+
+    ## A static method to plot charts
+    @staticmethod
+    def plot_chart(df_plot):
+
+        st.line_chart(df_plot, x="Days to Expiry",
+                      y="Black Scholes Option Price")

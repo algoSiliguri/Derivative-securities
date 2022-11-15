@@ -26,6 +26,12 @@ if strike_price not in ut.Utilities.get_strike_prices(option_type):
 
 bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 
+## Sidebar plots
+st.sidebar.write("---------------")
+st.sidebar.write("Click to see charts")
+## Checkbox for plotting option price based on different days to expiry
+plt_dte = st.sidebar.checkbox("Days to Expiry")
+
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -64,4 +70,12 @@ with col4:
 
 with col5:
     if bs.BSM.check_iv:
-        st.metric("Given Option Price($)", round(bsm.mid_bid_ask, 3))
+        st.metric("Mean Bid-Ask Price($)", round(bsm.mid_bid_ask, 3))
+
+### Plot of graphs based on different inputs ###
+
+## Plot graph for change in days to expiry
+if plt_dte:
+    dte_type = st.sidebar.radio(
+        "Select your chart type ", ("Continuous", "Discrete"), horizontal=True)
+    bsm.plot_dte(dte_type)
