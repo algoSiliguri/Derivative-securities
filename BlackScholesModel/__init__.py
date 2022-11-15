@@ -125,3 +125,25 @@ class BSM:
             return abs(self.calc_option_value() - self.mid_bid_ask)
 
         minimize_scalar(option_obj, bounds=(0.01, 3), method="bounded")
+
+    ## A function to plot the chart based on chane in days to expiry
+    def plot_dte(self, dte_type):
+
+        dte_dic = {"Week": 7, "Month": 31, "Quarter": 124,
+                   "Six Months": 185, "Year": 365, "5 years": 1825}
+        dte_op_lst = []
+        dic_dte = {}
+
+        for dte in dte_dic.values():
+            self.days_to_expiry = dte
+            self.calc_interest_rates()
+            dte_op_lst.append(self.calc_option_value())
+
+        if dte_type == "Continuous":
+            dic_dte["Days to Expiry"] = dte_dic.values()
+        else:
+            dic_dte["Days to Expiry"] = dte_dic.keys()
+
+        dic_dte["Black Scholes Option Price"] = dte_op_lst
+        pd_dte = pd.DataFrame(dic_dte)
+        ut.Utilities.plot_chart(pd_dte)
