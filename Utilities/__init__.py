@@ -67,3 +67,8 @@ class Utilities:
         if 'Days to Expiry' in df_plot:
             st.line_chart(df_plot, x="Days to Expiry",
                           y="Black Scholes Option Price")
+        
+        if 'Spot Price' in df_plot:
+            st.line_chart(df_plot, x="Spot Price",
+                          y="Intrinsic Value Option Price")
+

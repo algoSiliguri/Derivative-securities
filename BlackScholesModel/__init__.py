@@ -165,3 +165,19 @@ class BSM:
              "Black Scholes Option Price": r_op_list}
         )
         ut.Utilities.plot_chart(pd_r)
+
+    ## A function to plot the charts based on change in spot price
+    def plot_spot_price(self):
+
+        spot_lst = np.arange(self.spot_price*0.4,self.spot_price*1.6,self.spot_price*0.05)
+        spot_op_lst = []
+
+        for i in spot_lst:
+            self.spot_price = i
+            spot_op_lst.append(max(self.calc_option_value(),0))
+        
+        pd_spot = pd.DataFrame(
+            {"Spot Price": spot_lst,
+             "Intrinsic Value Option Price": spot_op_lst}
+        )
+        ut.Utilities.plot_chart(pd_spot)
