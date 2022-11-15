@@ -60,5 +60,10 @@ class Utilities:
     @staticmethod
     def plot_chart(df_plot):
 
-        st.line_chart(df_plot, x="Days to Expiry",
-                      y="Black Scholes Option Price")
+        if 'Interest rate' in df_plot:
+            st.line_chart(df_plot, x="Interest rate",
+                          y="Black Scholes Option Price")
+
+        if 'Days to Expiry' in df_plot:
+            st.line_chart(df_plot, x="Days to Expiry",
+                          y="Black Scholes Option Price")
