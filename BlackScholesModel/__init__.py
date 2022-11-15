@@ -2,13 +2,14 @@ import pandas as pd
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 import numpy as np
-import datetime as dt
 import Utilities as ut
+import datetime as dt
 
 
 class BSM:
     check_iv = False
     bsm_option_price = 0
+    days_to_expiry = 0
 
     def __init__(self, days_to_expiry, strike_price, call_or_put):
 
@@ -126,7 +127,7 @@ class BSM:
 
         minimize_scalar(option_obj, bounds=(0.01, 3), method="bounded")
 
-    ## A function to plot the chart based on chane in days to expiry
+    ## A function to plot the chart based on change in days to expiry
     def plot_dte(self, dte_type):
 
         dte_dic = {"Week": 7, "Month": 31, "Quarter": 124,
@@ -147,3 +148,20 @@ class BSM:
         dic_dte["Black Scholes Option Price"] = dte_op_lst
         pd_dte = pd.DataFrame(dic_dte)
         ut.Utilities.plot_chart(pd_dte)
+
+    ## A function to plot the charts based on change in interest rates
+    def plot_interest_rates(self):
+
+        r_list = np.arange(0, 0.14, 0.0025)
+        r_op_list = []
+
+        for i in r_list:
+            self.interest_rates = i
+            self.days_to_expiry = BSM.days_to_expiry
+            r_op_list.append(self.calc_option_value())
+
+        pd_r = pd.DataFrame(
+            {"Interest rate": r_list,
+             "Black Scholes Option Price": r_op_list}
+        )
+        ut.Utilities.plot_chart(pd_r)
