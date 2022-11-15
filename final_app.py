@@ -2,22 +2,25 @@ import streamlit as st
 import BlackScholesModel as bs
 import Utilities as ut
 
-###sidebar
+                                        ########################### Sidebar #######################
 
 #sidebar title
 
 st.sidebar.write("Here is your control panel ")
 st.sidebar.info('Trade date : 12/08/2015', icon="ℹ️")
 
-#sidebar parameters
+                                        ################### Sidebar parameters #####################
 
+## Slider to input days to expiry
 days_to_expiry = st.sidebar.slider(
     "Days to Expiry", value=31, min_value=7, max_value=100)
 bs.BSM.days_to_expiry = days_to_expiry
 
+## Radio button to choose option type
 option_type = st.sidebar.radio(
     "Select your option type - Call-> 0 | Put-> 1", (0, 1))
 
+## Input paramenter for strike price selection
 strike_price = st.sidebar.number_input(
     "Enter a strike price for your option (750-2500)", min_value=750, max_value=2500, value=2080, step=10)
 
@@ -25,22 +28,31 @@ if strike_price not in ut.Utilities.get_strike_prices(option_type):
     st.sidebar.error("Strike price not in given data!!! Please renter!!!")
     st.stop()
 
+## Checkbox to Calculate Iv using Brent's algorithm
 bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 
-## Sidebar plots
+
+                                            ##################### Sidebar plots #######################
 st.sidebar.write("---------------")
 st.sidebar.write("Click to see charts 📈")
+
+## Checkbox for plotting intrinsic value of option based on changes in spot price
+plt_spot = st.sidebar.checkbox("Change in Spot price")
+
 ## Checkbox for plotting option price based on different days to expiry
 plt_dte = st.sidebar.checkbox("Days to Expiry")
 if plt_dte:
     dte_type = st.sidebar.radio(
         "Select your chart type ", ("Continuous", "Discrete"), horizontal=True)
+
+## Checkbox for plotting option price based on different interest rates
 plt_r = st.sidebar.checkbox("Interest Rates")
 
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
-### Main_section ###
+                                            ################### Main_section ######################
+
 #title
 
 st.title("🕹️ Options Pricing model")
@@ -78,13 +90,20 @@ with col5:
         st.metric("Mean Bid-Ask Price($)", round(bsm.mid_bid_ask, 3))
 
 st.write("-------------------------------")
-### Plot of graphs based on different inputs ###
+
+                                    ########### Plot of graphs based on different inputs ######################
+## Plot graph for change in Spot Price
+if plt_spot:
+    st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
+    bsm.plot_spot_price()
+    bsm.calc_spotprice_SPX()
 
 ## Plot graph for change in days to expiry
 if plt_dte:
     st.success("📅 BSM sensitivity to changes in Days to expiry")
     bsm.plot_dte(dte_type)
 
+## Plot graph for change in Interest Rates
 if plt_r:
     st.success("💰 BSM sensitivity to changes in Interest rate")
     bsm.plot_interest_rates()
