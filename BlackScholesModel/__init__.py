@@ -4,7 +4,7 @@ from scipy.optimize import minimize_scalar
 import numpy as np
 import Utilities as ut
 import datetime as dt
-
+import matplotlib.pyplot as plt 
 
 class BSM:
     check_iv = False
@@ -126,6 +126,56 @@ class BSM:
             return abs(self.calc_option_value() - self.mid_bid_ask)
 
         minimize_scalar(option_obj, bounds=(0.01, 3), method="bounded")
+
+        ## Calculate delta of given option    
+    def __get_delta(self):
+        
+        d1 = self.__get_d1()
+        var = self.__option_type()
+        delta = np.exp(-self.dividend *self.days_to_expiry/365) * ut.Utilities.N(var*d1)
+        return delta
+   
+    ## Calculate gamma of given option    
+    def __get_gamma(self):
+        
+        d1 = self.__get_d1()
+        return np.exp(-self.dividend *self.days_to_expiry/365)  * ut.Utilities.N(d1) / (self.spot_price * self.iv * np.sqrt(self.days_to_expiry/365))
+     
+    def __get_interval(self, max_interval):
+         
+        grid_spacing = 0.001
+        return np.arange(-max_interval, max_interval+grid_spacing, grid_spacing)
+    
+    ## Redefine spot price
+    def __get_spotprice_interval(self):
+    
+        x = self.__get_interval(0.3)
+        self.spot_price = (1+x)*self.spot_price
+    
+    ## Calculate interval of spotprices around given option
+    def calc_spotprice_interval(self):
+        
+        self.__get_spotprice_interval()
+        spot_interval = self.calc_option_value()
+        return  spot_interval
+    
+    ## Calculate second-order polynomial approximation of option price wrt spot price of underlying
+    def calc_ts_approx(self):
+        
+        x = self.__get_interval(0.3)
+        ts_approx_price = self.calc_option_value() + self.__get_delta() * (self.spot_price*x) + self.__get_gamma() * (self.spot_price*x)**2
+        return ts_approx_price
+
+    def plot_ts_approximation(self):
+
+        x = self.__get_interval(0.3)
+        plt.plot(x, self.calc_ts_approx(), label = "Taylor-Series Approximation")
+        plt.plot(x, self.calc_spotprice_interval(), label = "Black-Scholes Price")
+        plt.xlabel("Change in Spot Price")
+        plt.ylabel("Option Price")
+        plt.legend()
+        plt.show()
+        
 
     ## A function to plot the chart based on change in days to expiry
     def plot_dte(self, dte_type):

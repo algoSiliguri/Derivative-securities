@@ -56,6 +56,12 @@ class Utilities:
 
         return norm.cdf(x)
 
+    ## A static method to return normal distribution cdf
+    @staticmethod
+    def n(x):
+
+        return norm.pdf(x)
+
     ## A static method to plot charts
     @staticmethod
     def plot_chart(df_plot):
