@@ -36,6 +36,9 @@ bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 st.sidebar.write("---------------")
 st.sidebar.write("Click to see charts 📈")
 
+## Checkbox for plotting option price based on changes in implied volatility
+plt_q2i = st.sidebar.checkbox("Change in Implied Volatility")
+
 ## Checkbox for plotting intrinsic value of option based on changes in spot price
 plt_spot = st.sidebar.checkbox("Change in Spot price")
 
@@ -46,7 +49,7 @@ if plt_dte:
         "Select your chart type ", ("Continuous", "Discrete"), horizontal=True)
 
 ## Checkbox for plotting option price based on different interest rates
-plt_r = st.sidebar.checkbox("Interest Rates")
+plt_r = st.sidebar.checkbox("Change in Interest Rates")
 
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
@@ -92,6 +95,12 @@ with col5:
 st.write("-------------------------------")
 
                                     ########### Plot of graphs based on different inputs ######################
+## Plot graph for change in Implied Volatility
+if plt_q2i:
+    st.success("Sensitivity of Black-Scholes option price to changes in Volatility")
+    bsm.plot_q2i()
+    bsm.calc_implied_vol()
+
 ## Plot graph for change in Spot Price
 if plt_spot:
     st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")

@@ -186,3 +186,20 @@ class BSM:
              "Intrinsic Value of Option": intrinsic_val_lst}
         )
         ut.Utilities.plot_chart(pd_spot)
+    
+## A function to plot the charts based on changes in Implied Volatility
+    def plot_q2i(self):
+
+
+        sigma_op_list = []
+        sigma_list = np.arange(self.iv*1.05, self.iv*1.8, self.iv*0.05)
+        
+        for i in sigma_list:
+            self.iv = i
+            sigma_op_list.append(self.calc_option_value())
+
+        pd_sigma = pd.DataFrame(
+            {"Implied Volatility": sigma_list,
+             "Black Scholes Option Price": sigma_op_list}
+        )
+        ut.Utilities.plot_chart(pd_sigma)

@@ -71,3 +71,7 @@ class Utilities:
         if 'Spot Price' in df_plot:
             st.line_chart(df_plot, x="Spot Price", y={
                           "Black Scholes Option Price", "Intrinsic Value of Option"})
+        
+        if 'Implied Volatility (Percent)' in df_plot:
+            st.line_chart(df_plot, x="Implied Volatility", 
+                          y="Black Scholes Option Price")
