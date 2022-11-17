@@ -113,11 +113,3 @@ if plt_r:
 if plt_ts:
     st.success("2nd-Order Taylor-Series approximation of Option Price")
     bsm.plot_ts_approximation()
-
-# bsm = bs.BSM(30,2090,1)
-# bsm.calc_interest_rates()
-# bsm.calc_dividend()
-# bsm.calc_spotprice_SPX()
-# bsm.calc_implied_vol()
-# bsm.calc_option_value()
-# bsm.plot_ts_approximation()

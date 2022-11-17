@@ -140,21 +140,20 @@ class BSM:
         d1 = self.__get_d1()
         return np.exp(-self.dividend *self.days_to_expiry/365)  * ut.Utilities.N(d1) / (self.spot_price * self.iv * np.sqrt(self.days_to_expiry/365))
      
-    def __get_interval(self, max_interval):
+    def __get_interval(self, max_interval, grid_spacing):
          
-        grid_spacing = 0.001
         return np.arange(-max_interval, max_interval+grid_spacing, grid_spacing)
     
     ## Redefine spot price
-    def __get_spotprice_interval(self, max_interval):
+    def __get_spotprice_interval(self, max_interval, grid_spacing):
     
-        x = self.__get_interval(max_interval)
+        x = self.__get_interval(max_interval, grid_spacing)
         self.spot_price = (1+x)*self.spot_price
     
     ## Calculate interval of spotprices around given option
-    def calc_spotprice_interval(self, max_interval):
+    def calc_spotprice_interval(self, max_interval, grid_spacing):
         
-        self.__get_spotprice_interval(max_interval)
+        self.__get_spotprice_interval(max_interval, grid_spacing)
         spot_interval = self.calc_option_value()
         return  spot_interval
     
@@ -163,18 +162,43 @@ class BSM:
         
         delta = self.__get_delta()
         gamma = self.__get_gamma()
-        x = self.__get_interval(0.3)
+        x = self.__get_interval(0.3, 0.01)
         
         ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2
         return ts_approx_price
 
+    ## Redefine interest rate
+    def __get_interest_interval(self):
+
+        self.interest_rates = np.arange(0,0.14,0.0025)
+    
+    ## Calculate interval of option prices for given interest rates
+    def calc_interest_interval(self):
+        
+        self.__get_interest_interval()
+        interest_interval = self.calc_option_value()
+        return  interest_interval
+
+    ## Redefine days to maturity
+    def __get_maturity_interval(self):
+
+        self.days_to_expiry = np.array([7, 31, 124, 185, 365, 1825])
+    
+    ## Calculate interval of option prices for given time to maturities
+    def calc_maturity_interval(self):
+        
+        self.__get_maturity_interval()
+        maturity_interval = self.calc_option_value()
+        return  maturity_interval
+
+
     ## A function to plot the charts based on change in spot price
     def plot_ts_approximation(self):
 
-        spot_lst = (1+self.__get_interval(0.3))*self.spot_price
+        spot_lst = (1+self.__get_interval(0.3, 0.01))*self.spot_price
 
         ts_lst = self.calc_ts_approx()
-        bs_lst = self.calc_spotprice_interval(0.3)
+        bs_lst = self.calc_spotprice_interval(0.3, 0.01)
 
         pd_ts = pd.DataFrame(
             {"Spot Price": spot_lst,
@@ -188,13 +212,8 @@ class BSM:
 
         dte_dic = {"Week": 7, "Month": 31, "Quarter": 124,
                    "Six Months": 185, "Year": 365, "5 years": 1825}
-        dte_op_lst = []
+        dte_op_lst = self.calc_maturity_interval()
         dic_dte = {}
-
-        for dte in dte_dic.values():
-            self.days_to_expiry = dte
-            self.calc_interest_rates()
-            dte_op_lst.append(self.calc_option_value())
 
         if dte_type == "Continuous":
             dic_dte["Days to Expiry"] = dte_dic.values()
@@ -209,12 +228,8 @@ class BSM:
     def plot_interest_rates(self):
 
         r_list = np.arange(0, 0.14, 0.0025)
-        r_op_list = []
-
-        for i in r_list:
-            self.interest_rates = i
-            self.days_to_expiry = BSM.days_to_expiry
-            r_op_list.append(self.calc_option_value())
+        self.calc_interest_interval()
+        r_op_list = self.calc_option_value()
 
         pd_r = pd.DataFrame(
             {"Interest rate": r_list,
@@ -225,16 +240,11 @@ class BSM:
     ## A function to plot the charts based on change in spot price
     def plot_spot_price(self):
 
-        spot_lst = np.arange(self.spot_price*0.4,
-                             self.spot_price*1.6, self.spot_price*0.05)
-        intrinsic_val_lst = []
-        spot_opt_lst = []
+        spot_lst = (1+self.__get_interval(0.6, 0.05))*self.spot_price
+        
         var = self.__option_type()
-
-        for i in spot_lst:
-            self.spot_price = i
-            intrinsic_val_lst.append(max(var*(i - self.strike_price), 0))
-            spot_opt_lst.append(self.calc_option_value())
+        intrinsic_val_lst = np.maximum(var*(spot_lst - self.strike_price),0)
+        spot_opt_lst = self.calc_spotprice_interval(0.6, 0.05)  
 
         pd_spot = pd.DataFrame(
             {"Black Scholes Option Price": spot_opt_lst,
