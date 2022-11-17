@@ -5,7 +5,6 @@ from jproperties import Properties
 import pandas as pd
 from scipy.stats import norm
 import streamlit as st
-import matplotlib.pyplot as plt
 
 class Utilities:
 
@@ -72,20 +71,8 @@ class Utilities:
             st.line_chart(df_plot, x="Spot Price", y={
                           "Black Scholes Option Price", "Intrinsic Value of Option"})
             
-        if 'Implied Volatility (Percent)' in df_plot:                  #q2i
+        if 'Implied Volatility (Percent)' in df_plot:
             st.line_chart(df_plot, x="Implied Volatility (Percent)", 
                           y="Black Scholes Option Price")
 
-#         if 'Time to maturity' in df_plot:       #q2iii
-#             st.success(df_plot.Labels)
-#             st.success(df_plot["Black Scholes Option Price"])
-# #            st.line_chart(df_plot, x="Time to maturity", xlabels="Labels", 
-# #                          y="Black Scholes Option Price")
-#             st.line_chart(df_plot, x=["1 week", "1 month", "1 quarter", "6 months", "1 year", "5 years"], 
-#                           y="Black Scholes Option Price")
-            #fig, ax = plt.subplots()
-            #plt.scatter("Labels", "Black Scholes Option Price",c="blue")
-            #st.pyplot(fig)
-            
-            
             
