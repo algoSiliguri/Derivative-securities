@@ -39,6 +39,9 @@ st.sidebar.write("Click to see charts 📈")
 ## Checkbox for plotting intrinsic value of option based on changes in spot price
 plt_spot = st.sidebar.checkbox("Change in Spot price")
 
+## Checkbox for plotting Taylor Series approximation of option prices based on spot price
+plt_ts = st.sidebar.checkbox("Taylor-Series Approximation")
+
 ## Checkbox for plotting option price based on different days to expiry
 plt_dte = st.sidebar.checkbox("Days to Expiry")
 if plt_dte:
@@ -47,7 +50,6 @@ if plt_dte:
 
 ## Checkbox for plotting option price based on different interest rates
 plt_r = st.sidebar.checkbox("Interest Rates")
-
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -107,3 +109,15 @@ if plt_dte:
 if plt_r:
     st.success("💰 BSM sensitivity to changes in Interest rate")
     bsm.plot_interest_rates()
+
+if plt_ts:
+    st.success("2nd-Order Taylor-Series approximation of Option Price")
+    bsm.plot_ts_approximation()
+
+# bsm = bs.BSM(30,2090,1)
+# bsm.calc_interest_rates()
+# bsm.calc_dividend()
+# bsm.calc_spotprice_SPX()
+# bsm.calc_implied_vol()
+# bsm.calc_option_value()
+# bsm.plot_ts_approximation()

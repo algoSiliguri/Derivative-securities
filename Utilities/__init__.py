@@ -69,11 +69,15 @@ class Utilities:
         if 'Interest rate' in df_plot:
             st.line_chart(df_plot, x="Interest rate",
                           y="Black Scholes Option Price")
+        
+        if 'Taylor-Series Approximation' in df_plot:
+            st.line_chart(df_plot, x="Spot Price", y={
+                          "Black Scholes Option Price", "Taylor-Series Approximation"})
 
         if 'Days to Expiry' in df_plot:
             st.line_chart(df_plot, x="Days to Expiry",
                           y="Black Scholes Option Price")
 
-        if 'Spot Price' in df_plot:
+        if 'Intrinsic Value of Option' in df_plot:
             st.line_chart(df_plot, x="Spot Price", y={
                           "Black Scholes Option Price", "Intrinsic Value of Option"})
