@@ -9,7 +9,6 @@ import datetime as dt
 class BSM:
     check_iv = False
     bsm_option_price = 0
-    days_to_expiry = 0
 
     def __init__(self, days_to_expiry, strike_price, call_or_put):
 
@@ -134,11 +133,16 @@ class BSM:
                    "Six Months": 185, "Year": 365, "5 years": 1825}
         dte_op_lst = []
         dic_dte = {}
+        init_dte = self.days_to_expiry 
+        init_ir = self.interest_rates
 
         for dte in dte_dic.values():
             self.days_to_expiry = dte
             self.calc_interest_rates()
             dte_op_lst.append(self.calc_option_value())
+
+        self.days_to_expiry = init_dte
+        self.interest_rates = init_ir
 
         if dte_type == "Continuous":
             dic_dte["Days to Expiry"] = dte_dic.values()
@@ -154,11 +158,13 @@ class BSM:
 
         r_list = np.arange(0, 0.14, 0.0025)
         r_op_list = []
+        init_ir = self.interest_rates
 
         for i in r_list:
             self.interest_rates = i
-            self.days_to_expiry = BSM.days_to_expiry
             r_op_list.append(self.calc_option_value())
+
+        self.interest_rates = init_ir
 
         pd_r = pd.DataFrame(
             {"Interest rate": r_list,
@@ -174,15 +180,36 @@ class BSM:
         intrinsic_val_lst = []
         spot_opt_lst = []
         var = self.__option_type()
+        init_sp = self.spot_price
 
         for i in spot_lst:
             self.spot_price = i
             intrinsic_val_lst.append(max(var*(i - self.strike_price), 0))
             spot_opt_lst.append(self.calc_option_value())
 
+        self.spot_price = init_sp
         pd_spot = pd.DataFrame(
             {"Black Scholes Option Price": spot_opt_lst,
              "Spot Price": spot_lst,
              "Intrinsic Value of Option": intrinsic_val_lst}
         )
         ut.Utilities.plot_chart(pd_spot)
+    
+    ## A function to plot the charts based on changes in Implied Volatility
+    def plot_q2i(self):
+
+        sigma_op_list = []
+        sigma_list = np.arange(0.05, 0.85, 0.05)
+        init_iv = self.iv
+        
+        for i in sigma_list:
+            self.iv = i
+            sigma_op_list.append(self.calc_option_value())
+
+        self.iv = init_iv
+
+        pd_sigma = pd.DataFrame(
+            {"Implied Volatility (Percent)": sigma_list * 100,
+             "Black Scholes Option Price": sigma_op_list}
+        )
+        ut.Utilities.plot_chart(pd_sigma)

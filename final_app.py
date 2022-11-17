@@ -14,7 +14,6 @@ st.sidebar.info('Trade date : 12/08/2015', icon="ℹ️")
 ## Slider to input days to expiry
 days_to_expiry = st.sidebar.slider(
     "Days to Expiry", value=31, min_value=7, max_value=100)
-bs.BSM.days_to_expiry = days_to_expiry
 
 ## Radio button to choose option type
 option_type = st.sidebar.radio(
@@ -34,19 +33,23 @@ bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 
                                             ##################### Sidebar plots #######################
 st.sidebar.write("---------------")
-st.sidebar.write("Click to see charts 📈")
+charts = st.sidebar.checkbox("Click to see charts 📈")
 
-## Checkbox for plotting intrinsic value of option based on changes in spot price
-plt_spot = st.sidebar.checkbox("Change in Spot price")
+if charts:
+    ## Checkbox for plotting option price based on changes in implied volatility
+    plt_q2i = st.sidebar.checkbox("Change in Implied Volatility")
 
-## Checkbox for plotting option price based on different days to expiry
-plt_dte = st.sidebar.checkbox("Days to Expiry")
-if plt_dte:
-    dte_type = st.sidebar.radio(
-        "Select your chart type ", ("Continuous", "Discrete"), horizontal=True)
+    ## Checkbox for plotting intrinsic value of option based on changes in spot price
+    plt_spot = st.sidebar.checkbox("Change in Spot price")
 
-## Checkbox for plotting option price based on different interest rates
-plt_r = st.sidebar.checkbox("Interest Rates")
+    ## Checkbox for plotting option price based on different days to expiry
+    plt_dte = st.sidebar.checkbox("Days to Expiry")
+    if plt_dte:
+        dte_type = st.sidebar.radio(
+            "Select your chart type ", ("Continuous", "Discrete"), horizontal=True)
+
+    ## Checkbox for plotting option price based on different interest rates
+    plt_r = st.sidebar.checkbox("Change in Interest Rates")
 
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
@@ -92,18 +95,24 @@ with col5:
 st.write("-------------------------------")
 
                                     ########### Plot of graphs based on different inputs ######################
-## Plot graph for change in Spot Price
-if plt_spot:
-    st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
-    bsm.plot_spot_price()
-    bsm.calc_spotprice_SPX()
+    
+if charts:
+    ## Plot graph for change in Implied Volatility
+    if plt_q2i:
+        st.success("Sensitivity of Black-Scholes option price to changes in Volatility")
+        bsm.plot_q2i()
 
-## Plot graph for change in days to expiry
-if plt_dte:
-    st.success("📅 BSM sensitivity to changes in Days to expiry")
-    bsm.plot_dte(dte_type)
+    ## Plot graph for change in Spot Price
+    if plt_spot:
+        st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
+        bsm.plot_spot_price()
 
-## Plot graph for change in Interest Rates
-if plt_r:
-    st.success("💰 BSM sensitivity to changes in Interest rate")
-    bsm.plot_interest_rates()
+    ## Plot graph for change in days to expiry
+    if plt_dte:
+        st.success("📅 BSM sensitivity to changes in Days to expiry")
+        bsm.plot_dte(dte_type)
+
+    ## Plot graph for change in Interest Rates
+    if plt_r:
+        st.success("💰 BSM sensitivity to changes in Interest rate")
+        bsm.plot_interest_rates()
