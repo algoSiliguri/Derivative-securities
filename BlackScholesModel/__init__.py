@@ -187,8 +187,10 @@ class BSM:
     ## Calculate interval of option prices for given time to maturities
     def calc_maturity_interval(self):
         
+        init_dte = self.days_to_expiry
         self.__get_maturity_interval()
         maturity_interval = self.calc_option_value()
+        self.days_to_expiry = init_dte
         return  maturity_interval
 
 
@@ -205,6 +207,7 @@ class BSM:
              "Black Scholes Option Price": bs_lst,
              "Taylor-Series Approximation": ts_lst}
         )
+        self.calc_spotprice_SPX()
         ut.Utilities.plot_chart(pd_ts)
 
     ## A function to plot the chart based on change in days to expiry
@@ -235,6 +238,7 @@ class BSM:
             {"Interest rate": r_list,
              "Black Scholes Option Price": r_op_list}
         )
+        self.calc_interest_rates()
         ut.Utilities.plot_chart(pd_r)
 
     ## A function to plot the charts based on change in spot price

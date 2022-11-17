@@ -100,6 +100,10 @@ if plt_spot:
     bsm.plot_spot_price()
     bsm.calc_spotprice_SPX()
 
+if plt_ts:
+    st.success("2nd-Order Taylor-Series approximation of Option Price")
+    bsm.plot_ts_approximation()
+
 ## Plot graph for change in days to expiry
 if plt_dte:
     st.success("📅 BSM sensitivity to changes in Days to expiry")
@@ -109,7 +113,3 @@ if plt_dte:
 if plt_r:
     st.success("💰 BSM sensitivity to changes in Interest rate")
     bsm.plot_interest_rates()
-
-if plt_ts:
-    st.success("2nd-Order Taylor-Series approximation of Option Price")
-    bsm.plot_ts_approximation()
