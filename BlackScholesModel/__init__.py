@@ -126,7 +126,19 @@ class BSM:
 
         minimize_scalar(option_obj, bounds=(0.01, 3), method="bounded")
 
-        ## Calculate delta of given option    
+    ## Redefine volatility
+    def __get_vol_interval(self):
+
+        self.iv = np.arange(0.05,0.85,0.05)
+    
+    ## Calculate interval of option prices for given volatilities
+    def calc_vol_interval(self):
+        
+        self.__get_vol_interval()
+        vol_interval = self.calc_option_value()
+        return  vol_interval
+
+    ## Calculate delta of given option    
     def __get_delta(self):
         
         d1 = self.__get_d1()
@@ -193,6 +205,19 @@ class BSM:
         self.days_to_expiry = init_dte
         return  maturity_interval
 
+    ## A function to plot the charts based on change in volatility
+    def plot_vol(self):
+
+        vol_list = np.arange(0.05, 0.85, 0.05)
+        self.calc_vol_interval()
+        vol_op_list = self.calc_option_value()
+
+        pd_vol = pd.DataFrame(
+            {"Volatility": vol_list,
+             "Black Scholes Option Price": vol_op_list}
+        )
+        self.calc_implied_vol()
+        ut.Utilities.plot_chart(pd_vol)
 
     ## A function to plot the charts based on change in spot price
     def plot_ts_approximation(self):
@@ -255,4 +280,5 @@ class BSM:
              "Spot Price": spot_lst,
              "Intrinsic Value of Option": intrinsic_val_lst}
         )
+        self.calc_spotprice_SPX()
         ut.Utilities.plot_chart(pd_spot)

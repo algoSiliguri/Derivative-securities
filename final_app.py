@@ -36,6 +36,9 @@ bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 st.sidebar.write("---------------")
 st.sidebar.write("Click to see charts 📈")
 
+## Checkbox for plotting intrinsic value of option based on changes in volatility
+plt_vol = st.sidebar.checkbox("Change in Volatility")
+
 ## Checkbox for plotting intrinsic value of option based on changes in spot price
 plt_spot = st.sidebar.checkbox("Change in Spot price")
 
@@ -94,11 +97,15 @@ with col5:
 st.write("-------------------------------")
 
                                     ########### Plot of graphs based on different inputs ######################
+## Plot graph for change in Volatility
+if plt_vol:
+    st.success("💰 BSM sensitivity to changes in Volatility")
+    bsm.plot_vol()
+
 ## Plot graph for change in Spot Price
 if plt_spot:
     st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
     bsm.plot_spot_price()
-    bsm.calc_spotprice_SPX()
 
 if plt_ts:
     st.success("2nd-Order Taylor-Series approximation of Option Price")
@@ -113,3 +120,11 @@ if plt_dte:
 if plt_r:
     st.success("💰 BSM sensitivity to changes in Interest rate")
     bsm.plot_interest_rates()
+
+# bsm = bs.BSM(30,2090,0)
+# bsm.calc_dividend()
+# bsm.calc_interest_rates()
+# bsm.calc_implied_vol()
+# bsm.calc_spotprice_SPX()
+# bsm.calc_option_value()
+# bsm.plot_vol()
