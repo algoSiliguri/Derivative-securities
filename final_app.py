@@ -1,3 +1,8 @@
+
+
+import sys
+sys.path.insert(0, r'C:\Users\arpit\git\git1')
+
 import streamlit as st
 import BlackScholesModel as bs
 import Utilities as ut
@@ -36,6 +41,10 @@ bs.BSM.check_iv = st.sidebar.checkbox("Brent's Volatility Solver")
 st.sidebar.write("---------------")
 st.sidebar.write("Click to see charts 📈")
 
+
+##checkbox q2_i
+plt_q2i = st.sidebar.checkbox("Change in Implied Volatility")
+
 ## Checkbox for plotting intrinsic value of option based on changes in spot price
 plt_spot = st.sidebar.checkbox("Change in Spot price")
 
@@ -48,6 +57,8 @@ if plt_dte:
 ## Checkbox for plotting option price based on different interest rates
 plt_r = st.sidebar.checkbox("Interest Rates")
 
+# plt_q2iii = st.sidebar.checkbox("q2iii")
+# plt_q2iv = st.sidebar.checkbox("q2iv")
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -92,6 +103,12 @@ with col5:
 st.write("-------------------------------")
 
                                     ########### Plot of graphs based on different inputs ######################
+
+## Plot graph for q2(i)
+if plt_q2i:
+    st.success("Sensitivity of Black-Scholes option price to changes in Volatility")
+    bsm.plot_q2i()
+    
 ## Plot graph for change in Spot Price
 if plt_spot:
     st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
@@ -107,3 +124,12 @@ if plt_dte:
 if plt_r:
     st.success("💰 BSM sensitivity to changes in Interest rate")
     bsm.plot_interest_rates()
+    
+
+# if plt_q2iii:
+#     st.success("q2iii")
+#     bsm.plot_q2iii()
+
+# if plt_q2iv:
+#     st.success("q2iv")
+#     bsm.plot_q2iv()
