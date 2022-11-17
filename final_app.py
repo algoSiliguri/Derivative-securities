@@ -1,8 +1,5 @@
 
 
-import sys
-sys.path.insert(0, r'C:\Users\arpit\git\git1')
-
 import streamlit as st
 import BlackScholesModel as bs
 import Utilities as ut
