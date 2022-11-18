@@ -213,3 +213,54 @@ class BSM:
              "Black Scholes Option Price": sigma_op_list}
         )
         ut.Utilities.plot_chart(pd_sigma)
+
+  ## Calculate delta of given option    
+    def __get_delta(self):
+       
+        d1 = self.__get_d1()
+        var = self.__option_type()
+        delta = var*np.exp(-self.dividend *self.days_to_expiry/365) * ut.Utilities.N(var*d1)
+        return delta
+   
+    ## Calculate gamma of given option    
+    def __get_gamma(self):
+       
+        d1 = self.__get_d1()
+        return np.exp(-self.dividend *self.days_to_expiry/365)  * ut.Utilities.N(d1) / (self.spot_price * self.iv * np.sqrt(self.days_to_expiry/365))
+   
+    ## Calculate interval of spotprices around given option
+    def __calc_spotprice_interval(self):
+       
+        x = np.arange(-0.3, 0.31, 0.01)
+        self.spot_price = (1+x)*self.spot_price
+        spot_interval = self.calc_option_value()
+        return  spot_interval
+   
+    ## Calculate second-order polynomial approximation of option price wrt spot price of underlying
+    def __calc_ts_approx(self):
+       
+        delta = self.__get_delta()
+        gamma = self.__get_gamma()
+        x = np.arange(-0.3, 0.31, 0.01)
+       
+        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2/2
+        return ts_approx_price
+
+    ## A function to plot the charts based on change in spot price
+    def plot_ts_approximation(self):
+
+        init_spot = self.spot_price
+        spot_lst = (1+np.arange(-0.3, 0.31, 0.01))*self.spot_price
+
+        ts_lst = self.__calc_ts_approx()
+        bs_lst = self.__calc_spotprice_interval()
+
+        self.spot_price = init_spot
+        self.calc_option_value()
+
+        pd_ts = pd.DataFrame(
+            {"Spot Price": spot_lst,
+             "Black Scholes Option Price": bs_lst,
+             "Taylor-Series Approximation": ts_lst}
+        )
+        ut.Utilities.plot_chart(pd_ts)
