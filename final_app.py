@@ -52,7 +52,7 @@ if charts:
     ## Checkbox for plotting option price based on different interest rates
     plt_r = st.sidebar.checkbox("Change in Interest Rates")
 
-    ## Checkbox for plotting option price based on different interest rates
+    ## Checkbox for plotting Taylor-Series Approximation
     plt_ts = st.sidebar.checkbox("Taylor-Series Approximation") 
 
 
@@ -125,13 +125,4 @@ if charts:
     if plt_ts:
         st.success("2nd-Order Taylor-Series Approximation of Option Prices")
         bsm.plot_ts_approximation()
-        #bsm.calc_spotprice_SPX()
-
-# bsm = bs.BSM(30, 2090, 0)
-# bsm.calc_interest_rates()
-# bsm.calc_implied_vol()
-# bsm.calc_dividend()
-# bsm.calc_spotprice_SPX()
-# bsm.calc_option_value()
-# bsm.plot_ts_approximation()
-# print("hellow")
+        
