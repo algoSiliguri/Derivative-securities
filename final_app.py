@@ -14,7 +14,6 @@ st.sidebar.info('Trade date : 12/08/2015', icon="ℹ️")
 ## Slider to input days to expiry
 days_to_expiry = st.sidebar.slider(
     "Days to Expiry", value=31, min_value=7, max_value=100)
-bs.BSM.days_to_expiry = days_to_expiry
 
 ## Radio button to choose option type
 option_type = st.sidebar.radio(
@@ -39,9 +38,6 @@ st.sidebar.write("Click to see charts 📈")
 ## Checkbox for plotting intrinsic value of option based on changes in volatility
 plt_vol = st.sidebar.checkbox("Change in Volatility")
 
-## Checkbox for plotting intrinsic value of option based on changes in spot price
-plt_spot = st.sidebar.checkbox("Change in Spot price")
-
 ## Checkbox for plotting Taylor Series approximation of option prices based on spot price
 plt_ts = st.sidebar.checkbox("Taylor-Series Approximation")
 
@@ -53,6 +49,9 @@ if plt_dte:
 
 ## Checkbox for plotting option price based on different interest rates
 plt_r = st.sidebar.checkbox("Interest Rates")
+
+## Checkbox for plotting intrinsic value of option based on changes in spot price
+plt_spot = st.sidebar.checkbox("Change in Spot price")
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -101,30 +100,32 @@ st.write("-------------------------------")
 if plt_vol:
     st.success("💰 BSM sensitivity to changes in Volatility")
     bsm.plot_vol()
-
-## Plot graph for change in Spot Price
-if plt_spot:
-    st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
-    bsm.plot_spot_price()
+    bsm.calc_implied_vol()
+    bsm.calc_option_value()
 
 if plt_ts:
     st.success("2nd-Order Taylor-Series approximation of Option Price")
     bsm.plot_ts_approximation()
+    bsm.calc_spotprice_SPX()
+    bsm.calc_option_value()
 
 ## Plot graph for change in days to expiry
 if plt_dte:
     st.success("📅 BSM sensitivity to changes in Days to expiry")
     bsm.plot_dte(dte_type)
+    bsm.days_to_expiry = days_to_expiry
+    bsm.calc_option_value()
 
 ## Plot graph for change in Interest Rates
 if plt_r:
     st.success("💰 BSM sensitivity to changes in Interest rate")
     bsm.plot_interest_rates()
+    bsm.calc_interest_rates()
+    bsm.calc_option_value()
 
-# bsm = bs.BSM(30,2090,0)
-# bsm.calc_dividend()
-# bsm.calc_interest_rates()
-# bsm.calc_implied_vol()
-# bsm.calc_spotprice_SPX()
-# bsm.calc_option_value()
-# bsm.plot_vol()
+## Plot graph for change in Spot Price
+if plt_spot:
+    st.success("🇺🇸Intrinsic Value of Strike Price to change in Spot Price")
+    bsm.plot_spot_price()
+    bsm.calc_spotprice_SPX()
+    bsm.calc_option_value()

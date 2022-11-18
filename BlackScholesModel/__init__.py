@@ -5,10 +5,10 @@ import numpy as np
 import Utilities as ut
 import datetime as dt
 
+
 class BSM:
     check_iv = False
     bsm_option_price = 0
-    days_to_expiry = 0
 
     def __init__(self, days_to_expiry, strike_price, call_or_put):
 
@@ -126,15 +126,11 @@ class BSM:
 
         minimize_scalar(option_obj, bounds=(0.01, 3), method="bounded")
 
-    ## Redefine volatility
-    def __get_vol_interval(self):
-
-        self.iv = np.arange(0.05,0.85,0.05)
-    
     ## Calculate interval of option prices for given volatilities
     def calc_vol_interval(self):
         
-        self.__get_vol_interval()
+
+        self.iv = np.arange(0.05,0.85,0.05)
         vol_interval = self.calc_option_value()
         return  vol_interval
 
@@ -156,16 +152,11 @@ class BSM:
          
         return np.arange(-max_interval, max_interval+grid_spacing, grid_spacing)
     
-    ## Redefine spot price
-    def __get_spotprice_interval(self, max_interval, grid_spacing):
-    
-        x = self.__get_interval(max_interval, grid_spacing)
-        self.spot_price = (1+x)*self.spot_price
-    
     ## Calculate interval of spotprices around given option
     def calc_spotprice_interval(self, max_interval, grid_spacing):
         
-        self.__get_spotprice_interval(max_interval, grid_spacing)
+        x = self.__get_interval(max_interval, grid_spacing)
+        self.spot_price = (1+x)*self.spot_price
         spot_interval = self.calc_option_value()
         return  spot_interval
     
@@ -176,33 +167,21 @@ class BSM:
         gamma = self.__get_gamma()
         x = self.__get_interval(0.3, 0.01)
         
-        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2
+        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2/2
         return ts_approx_price
 
-    ## Redefine interest rate
-    def __get_interest_interval(self):
-
-        self.interest_rates = np.arange(0,0.14,0.0025)
-    
     ## Calculate interval of option prices for given interest rates
     def calc_interest_interval(self):
         
-        self.__get_interest_interval()
+        self.interest_rates = np.arange(0,0.14,0.0025)
         interest_interval = self.calc_option_value()
         return  interest_interval
-
-    ## Redefine days to maturity
-    def __get_maturity_interval(self):
-
-        self.days_to_expiry = np.array([7, 31, 124, 185, 365, 1825])
     
     ## Calculate interval of option prices for given time to maturities
     def calc_maturity_interval(self):
         
-        init_dte = self.days_to_expiry
-        self.__get_maturity_interval()
+        self.days_to_expiry = np.array([7, 31, 124, 185, 365, 1825])
         maturity_interval = self.calc_option_value()
-        self.days_to_expiry = init_dte
         return  maturity_interval
 
     ## A function to plot the charts based on change in volatility
@@ -280,5 +259,5 @@ class BSM:
              "Spot Price": spot_lst,
              "Intrinsic Value of Option": intrinsic_val_lst}
         )
-        self.calc_spotprice_SPX()
+        
         ut.Utilities.plot_chart(pd_spot)
