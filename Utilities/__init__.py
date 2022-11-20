@@ -56,6 +56,12 @@ class Utilities:
 
         return norm.cdf(x)
 
+    ## A static method to return normal distribution pdf
+    @staticmethod
+    def n(x):
+
+        return norm.pdf(x)
+
     ## A static method to plot charts
     @staticmethod
     def plot_chart(df_plot):
@@ -68,10 +74,14 @@ class Utilities:
             st.line_chart(df_plot, x="Days to Expiry",
                           y="Black Scholes Option Price")
 
-        if 'Spot Price' in df_plot:
+        if 'Intrinsic Value of Option' in df_plot:
             st.line_chart(df_plot, x="Spot Price", y={
                           "Black Scholes Option Price", "Intrinsic Value of Option"})
-        
+
         if 'Implied Volatility (Percent)' in df_plot:
-            st.line_chart(df_plot, x="Implied Volatility (Percent)", 
+            st.line_chart(df_plot, x="Implied Volatility (Percent)",
                           y="Black Scholes Option Price")
+
+        if 'Taylor-Series Approximation' in df_plot:
+            st.line_chart(df_plot, x="Spot Price", y={
+                          "Black Scholes Option Price", "Taylor-Series Approximation"})

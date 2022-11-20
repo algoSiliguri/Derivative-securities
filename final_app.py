@@ -1,6 +1,7 @@
 import streamlit as st
 import BlackScholesModel as bs
 import Utilities as ut
+import numpy as np
 
                                         ########################### Sidebar #######################
 
@@ -50,6 +51,9 @@ if charts:
 
     ## Checkbox for plotting option price based on different interest rates
     plt_r = st.sidebar.checkbox("Change in Interest Rates")
+
+    ## Checkbox for plotting Taylor-Series Approximation
+    plt_ts = st.sidebar.checkbox("Taylor-Series Approximation") 
 
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
@@ -116,3 +120,9 @@ if charts:
     if plt_r:
         st.success("💰 BSM sensitivity to changes in Interest rate")
         bsm.plot_interest_rates()
+
+    ## Plot graph for Taylor-Series Approximation
+    if plt_ts:
+        st.success("2nd-Order Taylor-Series Approximation of Option Prices")
+        bsm.plot_ts_approximation()
+        
