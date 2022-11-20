@@ -64,6 +64,40 @@ class BSM:
                           == df_iv["Open Interest"].max()]
         return df_iv
 
+    ## Calculate delta of given option
+    def __get_delta(self):
+
+        d1 = self.__get_d1()
+        var = self.__option_type()
+        delta = var*np.exp(-self.dividend *
+                           self.days_to_expiry/365) * ut.Utilities.N(var*d1)
+        return delta
+
+    ## Calculate gamma of given option
+    def __get_gamma(self):
+
+        d1 = self.__get_d1()
+        return np.exp(-self.dividend * self.days_to_expiry/365) * ut.Utilities.N(d1) / (self.spot_price * self.iv * np.sqrt(self.days_to_expiry/365))
+
+    ## Calculate interval of spotprices around given option
+    def __calc_spotprice_interval(self):
+
+        x = np.arange(-0.3, 0.31, 0.01)
+        self.spot_price = (1+x)*self.spot_price
+        spot_interval = self.calc_option_value()
+        return spot_interval
+
+    ## Calculate second-order polynomial approximation of option price wrt spot price of underlying
+    def __calc_ts_approx(self):
+
+        delta = self.__get_delta()
+        gamma = self.__get_gamma()
+        x = np.arange(-0.3, 0.31, 0.01)
+
+        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + \
+            gamma * (self.spot_price*x)**2/2
+        return ts_approx_price
+
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
 
@@ -133,7 +167,7 @@ class BSM:
                    "Six Months": 185, "Year": 365, "5 years": 1825}
         dte_op_lst = []
         dic_dte = {}
-        init_dte = self.days_to_expiry 
+        init_dte = self.days_to_expiry
         init_ir = self.interest_rates
 
         for dte in dte_dic.values():
@@ -194,14 +228,14 @@ class BSM:
              "Intrinsic Value of Option": intrinsic_val_lst}
         )
         ut.Utilities.plot_chart(pd_spot)
-    
+
     ## A function to plot the charts based on changes in Implied Volatility
     def plot_q2i(self):
 
         sigma_op_list = []
         sigma_list = np.arange(0.05, 0.85, 0.05)
         init_iv = self.iv
-        
+
         for i in sigma_list:
             self.iv = i
             sigma_op_list.append(self.calc_option_value())
@@ -213,38 +247,6 @@ class BSM:
              "Black Scholes Option Price": sigma_op_list}
         )
         ut.Utilities.plot_chart(pd_sigma)
-
-  ## Calculate delta of given option    
-    def __get_delta(self):
-       
-        d1 = self.__get_d1()
-        var = self.__option_type()
-        delta = var*np.exp(-self.dividend *self.days_to_expiry/365) * ut.Utilities.N(var*d1)
-        return delta
-   
-    ## Calculate gamma of given option    
-    def __get_gamma(self):
-       
-        d1 = self.__get_d1()
-        return np.exp(-self.dividend *self.days_to_expiry/365)  * ut.Utilities.N(d1) / (self.spot_price * self.iv * np.sqrt(self.days_to_expiry/365))
-   
-    ## Calculate interval of spotprices around given option
-    def __calc_spotprice_interval(self):
-       
-        x = np.arange(-0.3, 0.31, 0.01)
-        self.spot_price = (1+x)*self.spot_price
-        spot_interval = self.calc_option_value()
-        return  spot_interval
-   
-    ## Calculate second-order polynomial approximation of option price wrt spot price of underlying
-    def __calc_ts_approx(self):
-       
-        delta = self.__get_delta()
-        gamma = self.__get_gamma()
-        x = np.arange(-0.3, 0.31, 0.01)
-       
-        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2/2
-        return ts_approx_price
 
     ## A function to plot the charts based on change in spot price
     def plot_ts_approximation(self):
