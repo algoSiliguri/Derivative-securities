@@ -2,6 +2,8 @@ import streamlit as st
 import BlackScholesModel as bs
 import Utilities as ut
 import numpy as np
+import pandas as pd
+import Garch as ga
 
                                         ########################### Sidebar #######################
 
@@ -54,6 +56,8 @@ if charts:
 
     ## Checkbox for plotting Taylor-Series Approximation
     plt_ts = st.sidebar.checkbox("Taylor-Series Approximation") 
+
+table = st.sidebar.checkbox("Click to enable Garch(1,1) 🔮")    
 
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
@@ -125,4 +129,18 @@ if charts:
     if plt_ts:
         st.success("2nd-Order Taylor-Series Approximation of Option Prices")
         bsm.plot_ts_approximation()
+
+garch = ga.Garch()
+garch_result = [['Annualised Historic Forecasted Voltality', round(garch.calc_ann_forecast_vol(),4)],
+                ['Annualised Option Period Forecasted Voltality', round(garch.calc_ann_realised_vol(),4)],
+                ['VIX Voltality For Trade Date', round(garch.calc_vix_vol(),4)],
+                ['Implied Voltality For Trade Date', round(bsm.iv*100,4)]]
+
+df_garch_result = pd.DataFrame(garch_result,columns=['Metric','Value'])
+
+if table:
+    st.success("🔮 Garch (1,1) forecasted results tabulated against VIX and IV")
+    st.dataframe(df_garch_result, use_container_width=True)  
+
+
         
