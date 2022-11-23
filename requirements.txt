@@ -3,4 +3,5 @@ scipy
 numpy
 datetime
 jproperties
+arch
 streamlit
