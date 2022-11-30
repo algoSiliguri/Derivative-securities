@@ -82,6 +82,6 @@ class Utilities:
             st.line_chart(df_plot, x="Implied Volatility (Percent)",
                           y="Black Scholes Option Price")
 
-        if 'Taylor-Series Approximation' in df_plot:
+        if '1st-Order Taylor-Series Approximation' in df_plot:
             st.line_chart(df_plot, x="Spot Price", y={
-                          "Black Scholes Option Price", "Taylor-Series Approximation"})               
+                          "Black Scholes Option Price", "1st-Order Taylor-Series Approximation", "2nd-Order Taylor-Series Approximation"})               

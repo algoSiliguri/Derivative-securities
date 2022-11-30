@@ -94,9 +94,20 @@ class BSM:
         gamma = self.__get_gamma()
         x = np.arange(-0.3, 0.31, 0.01)
 
-        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + \
-            gamma * (self.spot_price*x)**2/2
-        return ts_approx_price
+        ts1_approx_price = self.calc_option_value() + delta * (self.spot_price*x)
+        ts2_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2/2
+        return ts1_approx_price, ts2_approx_price
+
+    ## Get SPX data from '12/08/2015' to Expiry
+    def __get_SPX_data_to_expiry(self):
+
+        file_path = ut.Utilities.getFilePath("SPX")
+        df = pd.read_csv(file_path)
+        df['Date'] = pd.TimedeltaIndex(
+            df['Date'], unit='d') + dt.datetime(1899, 12, 30)
+        df_SPX = df.loc[(df['Date'] >= pd.Timestamp(2015, 8, 12) )
+        & (df['Date'] < pd.Timestamp(2015, 8, 12)+dt.timedelta(days=self.days_to_expiry))]
+        return df_SPX
 
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
@@ -263,6 +274,34 @@ class BSM:
         pd_ts = pd.DataFrame(
             {"Spot Price": spot_lst,
              "Black Scholes Option Price": bs_lst,
-             "Taylor-Series Approximation": ts_lst}
+             "1st-Order Taylor-Series Approximation": ts_lst[0],
+             "2nd-Order Taylor-Series Approximation": ts_lst[1]}
         )
         ut.Utilities.plot_chart(pd_ts)
+
+    ## Calculate delta for each of the days up to expiry
+    def calc_hedged_portfolio(self):
+
+        spot_init = self.spot_price
+        dte_init = self.days_to_expiry
+        
+        df_SPX = self.__get_SPX_data_to_expiry()
+        self.spot_price = df_SPX.iloc[:,5]
+        self.days_to_expiry = (dt.timedelta(days=self.days_to_expiry)+pd.Timestamp(2015,8,12)-df_SPX['Date'])/dt.timedelta(days=1)
+        delta_to_expiry = self.__get_delta()
+        
+        stock_holdings = delta_to_expiry*self.spot_price
+        change_holdings = stock_holdings.diff()
+        change_holdings.iloc[0] = stock_holdings.iloc[0]
+
+        df_delta = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, stock_holdings, change_holdings])
+        df_delta.index = ['Days to Expiry', 'Delta', 'Stock Holdings', 'Change in Holdings']
+        df_delta = df_delta.transpose()
+        df_delta['Days to Expiry'] = df_delta['Days to Expiry'].astype(int)
+        df_delta = df_delta.reset_index(drop=True)
+
+        self.spot_price = spot_init
+        self.days_to_expiry = dte_init
+
+        return df_delta
+    

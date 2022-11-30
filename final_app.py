@@ -58,8 +58,8 @@ if charts:
 
 ## Plot a table with Garch desired results
 st.sidebar.write("---------------")
-table = st.sidebar.checkbox("Click to enable Garch(1,1) 🔮")    
-
+table = st.sidebar.checkbox("Click to enable Garch(1,1) 🔮")
+delta_hedge = st.sidebar.checkbox("Click to show Delta-Hedged portfolio table 🌳")    
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -128,7 +128,7 @@ if charts:
 
     ## Plot graph for Taylor-Series Approximation
     if plt_ts:
-        st.success("2nd-Order Taylor-Series Approximation of Option Prices")
+        st.success("Taylor-Series Approximation of Option Prices")
         bsm.plot_ts_approximation()
 
 ## Garch Implementation
@@ -143,7 +143,9 @@ if table:
     df_garch_result = pd.DataFrame(garch_result,columns=['Metric','Value'])
 
     st.success("🔮 Garch (1,1) forecasted results tabulated against VIX and IV")
-    st.dataframe(df_garch_result, use_container_width=True)  
+    st.dataframe(df_garch_result, use_container_width=True)
 
-
-        
+if delta_hedge:
+    df_delta = bsm.calc_hedged_portfolio()
+    st.success("Delta-Hedged Portfolio")
+    st.dataframe(df_delta, use_container_width=True) 
