@@ -106,7 +106,7 @@ class BSM:
         df['Date'] = pd.TimedeltaIndex(
             df['Date'], unit='d') + dt.datetime(1899, 12, 30)
         df_SPX = df.loc[(df['Date'] >= pd.Timestamp(2015, 8, 12) )
-        & (df['Date'] < pd.Timestamp(2015, 8, 12)+dt.timedelta(days=self.days_to_expiry))]
+        & (df['Date'] < pd.Timestamp(2015, 8, 12)+dt.timedelta(days=self.days_to_expiry+1))]
         return df_SPX
 
     ## Calculating ineterest rates from zero curve using linear interpolation
@@ -280,59 +280,35 @@ class BSM:
         ut.Utilities.plot_chart(pd_ts)
 
     ## Calculate delta for each of the days up to expiry
-    def calc_hedged_portfolio(self):
+    def calc_hedged_portfolio(self, vol_type):
 
-        spot_init = self.spot_price
-        dte_init = self.days_to_expiry
-        
-        df_SPX = self.__get_SPX_data_to_expiry()
-        self.spot_price = df_SPX[:,5].values()
-        self.days_to_expiry = ((dt.timedelta(days=self.days_to_expiry)+pd.Timestamp(2015,8,12)-df_SPX['Date'])/dt.timedelta(days=1)).values()
+        init_dte = self.days_to_expiry
+        init_spot = self.spot_price
+        init_vol = self.iv
+
+        if vol_type == "Forecast Volatility":
+            garch = ga.Garch()
+            self.iv = garch.calc_ann_forecast_vol()/100
+
+        df_SPX = self.__get_SPX_data_to_expiry().reset_index(drop=True)
+        self.spot_price = df_SPX.iloc[:,5].values
+        self.days_to_expiry = (dt.timedelta(days=self.days_to_expiry)+pd.Timestamp(2015,8,12)-df_SPX['Date'])/dt.timedelta(days=1)
         
         delta_to_expiry = self.__get_delta()
         
         stock_holdings = delta_to_expiry*self.spot_price
-        change_holdings = stock_holdings.diff()
-        change_holdings.iloc[0] = stock_holdings.iloc[0]
+        change_holdings = delta_to_expiry.diff()
+        change_holdings.iloc[0] = delta_to_expiry.iloc[0]
+        val_shares_bought = change_holdings*self.spot_price
 
-        df_delta_iv = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, stock_holdings, change_holdings])
-        df_delta_iv.index = ['Days to Expiry', 'Delta', 'Stock Holdings', 'Change in Holdings']
+        df_delta_iv = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought])
+        df_delta_iv.index = ['Days to Expiry', 'Delta', 'Spot Price', 'Stock Holdings', 'Value of Shares Bought']
         df_delta_iv = df_delta_iv.transpose()
         df_delta_iv['Days to Expiry'] = df_delta_iv['Days to Expiry'].astype(int)
         df_delta_iv = df_delta_iv.reset_index(drop=True)
 
-        self.spot_price = spot_init
-        self.days_to_expiry = dte_init
+        self.days_to_expiry = init_dte
+        self.spot_price = init_spot
+        self.iv = init_vol
 
-        return df_delta_iv
-    
-    def calc_hedged_portfolio_forecast_vol(self):
-
-        spot_init = self.spot_price
-        dte_init = self.days_to_expiry
-        vol_init = self.iv
-        
-        df_SPX = self.__get_SPX_data_to_expiry()
-        self.spot_price = df_SPX.iloc[:,5]
-        self.days_to_expiry = ((dt.timedelta(days=self.days_to_expiry)+pd.Timestamp(2015,8,12)-df_SPX['Date'])/dt.timedelta(days=1))
-
-        garch = ga.Garch()
-        self.iv = garch.calc_ann_forecast_vol()/100
-        delta_to_expiry = self.__get_delta()
-        
-        stock_holdings = delta_to_expiry*self.spot_price
-        change_holdings = stock_holdings.diff()
-        change_holdings.iloc[0] = stock_holdings.iloc[0]
-
-        df_delta_forecast = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, stock_holdings, change_holdings])
-        df_delta_forecast.index = ['Days to Expiry', 'Delta', 'Stock Holdings', 'Change in Holdings']
-        df_delta_forecast = df_delta_forecast.transpose()
-        df_delta_forecast['Days to Expiry'] = df_delta_forecast['Days to Expiry'].astype(int)
-        df_delta_forecast = df_delta_forecast.reset_index(drop=True)
-
-        self.spot_price = spot_init
-        self.days_to_expiry = dte_init
-        self.iv = vol_init
-        self.calc_option_value()
-
-        return df_delta_forecast
+        return df_delta_iv 
