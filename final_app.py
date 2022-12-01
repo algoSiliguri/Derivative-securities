@@ -15,7 +15,7 @@ st.sidebar.info('Trade date : 12/08/2015', icon="ℹ️")
 
 ## Slider to input days to expiry
 days_to_expiry = st.sidebar.slider(
-    "Days to Expiry", value=31, min_value=7, max_value=100)
+    "Days to Expiry", value=30, min_value=7, max_value=100)
 
 ## Radio button to choose option type
 option_type = st.sidebar.radio(
@@ -65,8 +65,8 @@ st.sidebar.write("---------------")
 delta_hedge = st.sidebar.checkbox("Click to show Delta-Hedged portfolio table 🌳")
 
 if delta_hedge:
-    implied_vol = st.sidebar.checkbox("Delta Hedge using implied volatility")
-    forecast_vol = st.sidebar.checkbox("Delta Hedge using forecast volatility")
+    vol_type = st.sidebar.radio(
+            "Choice of Volatility used in Hedge", ("Implied Volatility", "Forecast Volatility"), horizontal=True)
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -157,12 +157,6 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)
 
 if delta_hedge:
-    if implied_vol:
-        df_delta = bsm.calc_hedged_portfolio()
-        st.success("Delta-Hedged Portfolio using implied volatility")
+        df_delta = bsm.calc_hedged_portfolio(vol_type)
+        st.success("Delta-Hedged Portfolio")
         st.dataframe(df_delta, use_container_width=True) 
-    
-    if forecast_vol:
-        df_delta_forecast = bsm.calc_hedged_portfolio_forecast_vol()
-        st.success("Delta-Hedged Portfolio using forecast volatility")
-        st.dataframe(df_delta_forecast, use_container_width=True) 
