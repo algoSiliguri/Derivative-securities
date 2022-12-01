@@ -59,7 +59,14 @@ if charts:
 ## Plot a table with Garch desired results
 st.sidebar.write("---------------")
 table = st.sidebar.checkbox("Click to enable Garch(1,1) 🔮")
-delta_hedge = st.sidebar.checkbox("Click to show Delta-Hedged portfolio table 🌳")    
+
+st.sidebar.write("---------------")
+
+delta_hedge = st.sidebar.checkbox("Click to show Delta-Hedged portfolio table 🌳")
+
+if delta_hedge:
+    implied_vol = st.sidebar.checkbox("Delta Hedge using implied volatility")
+    forecast_vol = st.sidebar.checkbox("Delta Hedge using forecast volatility")
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -150,6 +157,12 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)
 
 if delta_hedge:
-    df_delta = bsm.calc_hedged_portfolio()
-    st.success("Delta-Hedged Portfolio")
-    st.dataframe(df_delta, use_container_width=True) 
+    if implied_vol:
+        df_delta = bsm.calc_hedged_portfolio()
+        st.success("Delta-Hedged Portfolio using implied volatility")
+        st.dataframe(df_delta, use_container_width=True) 
+    
+    if forecast_vol:
+        df_delta_forecast = bsm.calc_hedged_portfolio_forecast_vol()
+        st.success("Delta-Hedged Portfolio using forecast volatility")
+        st.dataframe(df_delta_forecast, use_container_width=True) 
