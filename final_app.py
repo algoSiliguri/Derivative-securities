@@ -144,6 +144,7 @@ if table:
 
     st.success("🔮 Garch (1,1) forecasted results tabulated against VIX and IV")
     st.dataframe(df_garch_result, use_container_width=True)  
+    
+    st.write("-------------------------------")
 
-
-        
+    bsm.plot_option_spread()

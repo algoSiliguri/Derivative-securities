@@ -4,7 +4,7 @@ from scipy.optimize import minimize_scalar
 import numpy as np
 import Utilities as ut
 import datetime as dt
-
+import Garch as ga
 
 class BSM:
     check_iv = False
@@ -266,3 +266,35 @@ class BSM:
              "Taylor-Series Approximation": ts_lst}
         )
         ut.Utilities.plot_chart(pd_ts)
+        
+###
+    def __call_payoff(self,spot, st_price, option_value):
+        # premium = self.calc_option_value()
+        return np.where(spot > st_price, spot - self.strike_price, 0) - option_value
+
+    def __put_payoff(self,spot, st_price, option_value):
+        # premium = self.calc_option_value()
+        return np.where(spot < st_price, self.strike_price - spot, 0) - option_value
+
+    def iron_condor(self, spot):
+        garch = ga.Garch()
+        payoff_long_call = self.__call_payoff(spot, self.strike_price * (1+garch.calc_ann_realised_vol()/100), self.calc_option_value())
+        payoff_short_call = self.__call_payoff(spot, self.strike_price * (1-garch.calc_ann_realised_vol()/100), self.calc_option_value()) * -1.0
+        payoff_long_put = self.__put_payoff(spot, self.strike_price * (1+garch.calc_ann_realised_vol()/100), self.calc_option_value())
+        payoff_short_put = self.__put_payoff(spot, self.strike_price * (1-garch.calc_ann_realised_vol()/100), self.calc_option_value()) * -1.0
+        payoff = payoff_long_call + payoff_short_call + payoff_long_put + payoff_short_put
+        return payoff
+
+
+    def plot_option_spread(self):
+        spot_lst = np.arange(self.spot_price*0.4, self.spot_price*1.6, self.spot_price*0.05)
+        opt_lst = []
+        for spot in spot_lst:
+            opt_lst.append(self.iron_condor(spot))
+        
+        pd_spot = pd.DataFrame(
+            {"Ironcondor output": opt_lst,
+             "Spot Price": spot_lst}
+        )
+        ut.Utilities.plot_chart(pd_spot)
+

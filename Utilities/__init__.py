@@ -85,3 +85,8 @@ class Utilities:
         if 'Taylor-Series Approximation' in df_plot:
             st.line_chart(df_plot, x="Spot Price", y={
                           "Black Scholes Option Price", "Taylor-Series Approximation"})               
+
+        if 'Ironcondor output' in df_plot:
+            st.line_chart(df_plot, x="Spot Price", y=
+              "Ironcondor output")   
+        
