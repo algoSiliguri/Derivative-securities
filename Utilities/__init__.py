@@ -88,3 +88,7 @@ class Utilities:
 
         if pd.Timestamp(2015, 8, 12) in df_plot:
             st.line_chart(df_plot)
+
+        if 'Delta' in df_plot:
+            st.line_chart(df_plot, x="DTE", y={
+                          "Delta", "P&L ($)"})

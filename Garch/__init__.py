@@ -4,6 +4,7 @@ from arch import arch_model
 import numpy as np
 import datetime as dt
 
+
 class Garch:
 
     def __init__(self):
@@ -12,7 +13,7 @@ class Garch:
         self.ann_option_vol = 0
         self.ann_realised_vol = 0
         self.vix = 0
-        self.df_forecast=0
+        self.df_forecast = 0
 
     ## Fetch train data from the SPX csv file
     def get_spx_data(self):
@@ -63,7 +64,8 @@ class Garch:
         df['Date'] = pd.TimedeltaIndex(
             df['Date'], unit='d') + dt.datetime(1899, 12, 30)
         df = df.set_index('Date')
-        test_data = df.loc[pd.Timestamp(2015,8,12): pd.Timestamp(2015, 9, 11)].copy()
+        test_data = df.loc[pd.Timestamp(
+            2015, 8, 12): pd.Timestamp(2015, 9, 11)].copy()
         test_data['Log_Return'] = np.log(
             test_data['Adj Close']).diff().mul(100)
         test_data = test_data.dropna()
@@ -75,8 +77,8 @@ class Garch:
     def plot_garch_vol(self):
         ut.Utilities.plot_chart(self.df_forecast)
 
-
     ## Fetch vix voltality from the vix file
+
     def calc_vix_vol(self):
 
         file_path = ut.Utilities.getFilePath("VIX")

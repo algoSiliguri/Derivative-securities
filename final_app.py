@@ -89,7 +89,7 @@ with col2:
 
 with col3:
     bsm.calc_spotprice_SPX()
-    st.metric("SPX Spot Price", round(bsm.spot_price, 2))
+    st.metric("SPX Spot Price ($)", round(bsm.spot_price, 2))
 
 with col4:
     bsm.calc_implied_vol()
@@ -157,6 +157,8 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)
 
 if delta_hedge:
-        df_delta = bsm.calc_hedged_portfolio(vol_type)
-        st.success("Delta-Hedged Portfolio")
-        st.dataframe(df_delta, use_container_width=True) 
+    st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
+    df_delta = bsm.calc_hedged_portfolio(vol_type)
+    st.success("🌳 Delta-Hedged Portfolio")
+    st.dataframe(df_delta, use_container_width=True)
+    st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Profit')
