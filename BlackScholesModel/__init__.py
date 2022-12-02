@@ -21,6 +21,7 @@ class BSM:
         self.iv = 0
         self.brent_iv = 0.01
         self.mid_bid_ask = 0
+        self.total_pnl = 0
 
     ## Determine which option formula to use
     def __option_type(self):
@@ -279,6 +280,13 @@ class BSM:
         )
         ut.Utilities.plot_chart(pd_ts)
 
+    def calc_ask_price(self):
+        df_od = ut.Utilities.get_option_metric_data()
+        df_ask = df_od.loc[(df_od['Trade dAte'] == '12/08/2015') & (df_od['Strike'] == 2080)]
+        df_ask = df_ask.loc[df_ask['Open Interest']  == df_ask['Open Interest'].max()]
+        ask_price = df_ask.iloc[0,5]
+        return ask_price
+
     ## Calculate delta for each of the days up to expiry
     def calc_hedged_portfolio(self, vol_type):
 
@@ -300,15 +308,22 @@ class BSM:
         change_holdings = delta_to_expiry.diff()
         change_holdings.iloc[0] = delta_to_expiry.iloc[0]
         val_shares_bought = change_holdings*self.spot_price
+        txn_cost = abs(val_shares_bought)*0.001
+        call_premium = self.calc_ask_price() * 0.999
+        pnl = call_premium*np.exp(0.005*(self.days_to_expiry.index/365)) - (val_shares_bought + txn_cost)
 
-        df_delta_iv = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought])
-        df_delta_iv.index = ['Days to Expiry', 'Delta', 'Spot Price', 'Stock Holdings', 'Value of Shares Bought']
+        df_delta_iv = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought, txn_cost, pnl])
+        df_delta_iv.index = ['DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Value of Shares Bought ($)', 'Transaction cost ($)', 'P&L ($)']
         df_delta_iv = df_delta_iv.transpose()
-        df_delta_iv['Days to Expiry'] = df_delta_iv['Days to Expiry'].astype(int)
+        df_delta_iv['DTE'] = df_delta_iv['DTE'].astype(int)
         df_delta_iv = df_delta_iv.reset_index(drop=True)
+
+        ut.Utilities.plot_chart(df_plot=df_delta_iv)
+
+        self.total_pnl = df_delta_iv['P&L ($)'].sum()
 
         self.days_to_expiry = init_dte
         self.spot_price = init_spot
         self.iv = init_vol
 
-        return df_delta_iv 
+        return df_delta_iv
