@@ -4,6 +4,7 @@ from scipy.optimize import minimize_scalar
 import numpy as np
 import Utilities as ut
 import datetime as dt
+import Garch as ga
 
 
 class BSM:
@@ -21,6 +22,7 @@ class BSM:
         self.iv = 0
         self.brent_iv = 0.01
         self.mid_bid_ask = 0
+        self.total_pnl = 0
 
     ## Determine which option formula to use
     def __option_type(self):
@@ -94,9 +96,21 @@ class BSM:
         gamma = self.__get_gamma()
         x = np.arange(-0.3, 0.31, 0.01)
 
-        ts_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + \
+        ts1_approx_price = self.calc_option_value() + delta * (self.spot_price*x)
+        ts2_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + \
             gamma * (self.spot_price*x)**2/2
-        return ts_approx_price
+        return ts1_approx_price, ts2_approx_price
+
+    ## Get SPX data from '12/08/2015' to Expiry
+    def __get_SPX_data_to_expiry(self):
+
+        file_path = ut.Utilities.getFilePath("SPX")
+        df = pd.read_csv(file_path)
+        df['Date'] = pd.TimedeltaIndex(
+            df['Date'], unit='d') + dt.datetime(1899, 12, 30)
+        df_SPX = df.loc[(df['Date'] >= pd.Timestamp(2015, 8, 12))
+                        & (df['Date'] < pd.Timestamp(2015, 8, 12)+dt.timedelta(days=self.days_to_expiry+1))]
+        return df_SPX
 
     ## Calculating ineterest rates from zero curve using linear interpolation
     def calc_interest_rates(self):
@@ -263,6 +277,62 @@ class BSM:
         pd_ts = pd.DataFrame(
             {"Spot Price": spot_lst,
              "Black Scholes Option Price": bs_lst,
-             "Taylor-Series Approximation": ts_lst}
+             "1st-Order Taylor-Series Approximation": ts_lst[0],
+             "2nd-Order Taylor-Series Approximation": ts_lst[1]}
         )
         ut.Utilities.plot_chart(pd_ts)
+
+    def calc_ask_price(self):
+        df_od = ut.Utilities.get_option_metric_data()
+        df_ask = df_od.loc[(df_od['Trade dAte'] == '12/08/2015')
+                           & (df_od['Strike'] == 2080)]
+        df_ask = df_ask.loc[df_ask['Open Interest']
+                            == df_ask['Open Interest'].max()]
+        ask_price = df_ask.iloc[0, 5]
+        return ask_price
+
+    ## Calculate delta for each of the days up to expiry
+    def calc_hedged_portfolio(self, vol_type):
+
+        init_dte = self.days_to_expiry
+        init_spot = self.spot_price
+        init_vol = self.iv
+
+        if vol_type == "Forecast Volatility":
+            garch = ga.Garch()
+            self.iv = garch.calc_ann_forecast_vol()/100
+
+        df_SPX = self.__get_SPX_data_to_expiry().reset_index(drop=True)
+        self.spot_price = df_SPX.iloc[:, 5].values
+        self.days_to_expiry = (dt.timedelta(days=self.days_to_expiry) +
+                               pd.Timestamp(2015, 8, 12)-df_SPX['Date'])/dt.timedelta(days=1)
+
+        delta_to_expiry = self.__get_delta()
+
+        stock_holdings = delta_to_expiry*self.spot_price
+        change_holdings = delta_to_expiry.diff()
+        change_holdings.iloc[0] = delta_to_expiry.iloc[0]
+        val_shares_bought = change_holdings*self.spot_price
+        txn_cost = abs(val_shares_bought)*0.001
+        call_premium = self.calc_ask_price() * 0.999
+        pnl = call_premium * \
+            np.exp(0.005*(self.days_to_expiry.index/365)) - \
+            (val_shares_bought + txn_cost)
+
+        df_delta_iv = pd.DataFrame(data=[self.days_to_expiry, delta_to_expiry,
+                                   self.spot_price, stock_holdings, val_shares_bought, txn_cost, pnl])
+        df_delta_iv.index = [
+            'DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Value of Shares Bought ($)', 'Transaction cost ($)', 'P&L ($)']
+        df_delta_iv = df_delta_iv.transpose()
+        df_delta_iv['DTE'] = df_delta_iv['DTE'].astype(int)
+        df_delta_iv = df_delta_iv.reset_index(drop=True)
+
+        ut.Utilities.plot_chart(df_plot=df_delta_iv)
+
+        self.total_pnl = df_delta_iv['P&L ($)'].sum()
+
+        self.days_to_expiry = init_dte
+        self.spot_price = init_spot
+        self.iv = init_vol
+
+        return df_delta_iv

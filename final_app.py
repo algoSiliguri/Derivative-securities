@@ -15,7 +15,7 @@ st.sidebar.info('Trade date : 12/08/2015', icon="ℹ️")
 
 ## Slider to input days to expiry
 days_to_expiry = st.sidebar.slider(
-    "Days to Expiry", value=31, min_value=7, max_value=100)
+    "Days to Expiry", value=30, min_value=7, max_value=100)
 
 ## Radio button to choose option type
 option_type = st.sidebar.radio(
@@ -58,8 +58,15 @@ if charts:
 
 ## Plot a table with Garch desired results
 st.sidebar.write("---------------")
-table = st.sidebar.checkbox("Click to enable Garch(1,1) 🔮")    
+table = st.sidebar.checkbox("Click to enable Garch(1,1) 🔮")
 
+st.sidebar.write("---------------")
+
+delta_hedge = st.sidebar.checkbox("Click to show Delta-Hedged portfolio table 🌳")
+
+if delta_hedge:
+    vol_type = st.sidebar.radio(
+            "Choice of Volatility used in Hedge", ("Implied Volatility", "Forecast Volatility"), horizontal=True)
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -82,7 +89,7 @@ with col2:
 
 with col3:
     bsm.calc_spotprice_SPX()
-    st.metric("SPX Spot Price", round(bsm.spot_price, 2))
+    st.metric("SPX Spot Price ($)", round(bsm.spot_price, 2))
 
 with col4:
     bsm.calc_implied_vol()
@@ -128,7 +135,7 @@ if charts:
 
     ## Plot graph for Taylor-Series Approximation
     if plt_ts:
-        st.success("2nd-Order Taylor-Series Approximation of Option Prices")
+        st.success("Taylor-Series Approximation of Option Prices")
         bsm.plot_ts_approximation()
 
 ## Garch Implementation
@@ -147,7 +154,11 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)  
     st.success("😮 Plotting Garch forecasted Voltality for Option Period")
     garch.plot_garch_vol()
-    
+    st.dataframe(df_garch_result, use_container_width=True)
 
-
-        
+if delta_hedge:
+    st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
+    df_delta = bsm.calc_hedged_portfolio(vol_type)
+    st.success("🌳 Delta-Hedged Portfolio")
+    st.dataframe(df_delta, use_container_width=True)
+    st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Profit')
