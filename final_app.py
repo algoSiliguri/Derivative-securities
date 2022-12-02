@@ -160,7 +160,6 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)
 
 if delta_hedge:
-    st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
     df_delta = bsm.calc_hedged_portfolio(vol_type, trans_costs)
 
     st.success("🌳 Delta-Hedged Portfolio")
@@ -171,6 +170,8 @@ if delta_hedge:
     else:
         st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Loss', delta_color='inverse')
 
-    if hedge_plots:
-        ut.Utilities.plot_chart(df_delta[['DTE', 'Cum. P&L ($)']])
+    st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
+    if hedge_plots=="Delta":
         ut.Utilities.plot_chart(df_delta[['DTE', 'Delta']])
+    else:
+        ut.Utilities.plot_chart(df_delta[['DTE', "Cum. P&L ($)"]])

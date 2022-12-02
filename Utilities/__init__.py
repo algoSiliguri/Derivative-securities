@@ -90,4 +90,4 @@ class Utilities:
             st.line_chart(df_plot, x="DTE", y="Delta")
 
         if 'Cum. P&L ($)' in df_plot:
-            st.line_chart(df_plot, x="DTE", y="Cum. P&L ($)")                   
+            st.line_chart(df_plot, x="DTE", y="Cum. P&L ($)")                
