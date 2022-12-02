@@ -89,3 +89,7 @@ class Utilities:
         if 'Delta' in df_plot:
             st.line_chart(df_plot, x="DTE", y={
                           "Delta", "P&L ($)"})                   
+                          "Black Scholes Option Price", "Taylor-Series Approximation"})
+
+        if pd.Timestamp(2015,8,12) in df_plot:
+            st.line_chart(df_plot)               
