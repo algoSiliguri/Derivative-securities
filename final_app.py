@@ -136,7 +136,8 @@ if table:
 
     garch = ga.Garch()
     garch_result = [['Annualised Historic Forecasted Voltality', round(garch.calc_ann_forecast_vol(),4)],
-                    ['Annualised Option Period Forecasted Voltality', round(garch.calc_ann_realised_vol(),4)],
+                    ['Annualised Option Period Forecasted Voltality', round(garch.calc_ann_option_vol(),4)],
+                    ['Annualised Option Period Realised Voltality', round(garch.calc_ann_realised_vol(),4)],
                     ['VIX Voltality For Trade Date', round(garch.calc_vix_vol(),4)],
                     ['Implied Voltality For Trade Date (%)', round(bsm.iv*100,4)]]
 
@@ -144,6 +145,9 @@ if table:
 
     st.success("🔮 Garch (1,1) forecasted results tabulated against VIX and IV")
     st.dataframe(df_garch_result, use_container_width=True)  
+    st.success("😮 Plotting Garch forecasted Voltality for Option Period")
+    garch.plot_garch_vol()
+    
 
 
         
