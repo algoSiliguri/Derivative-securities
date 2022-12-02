@@ -70,7 +70,7 @@ if delta_hedge:
             "Choice of Volatility used in Hedge", ("Implied Volatility", "Forecast Volatility"), horizontal=True)
     
     trans_costs = st.sidebar.number_input(
-    "Set Transaction Costs", min_value=0.0, max_value=1.0, value=0.001, step=0.001)
+    "Set Transaction Costs", min_value=0.0, max_value=1.0, value=0.001, step=0.001, format='%.3f')
 
     hedge_plots = st.sidebar.radio(
             "Choose Plot", ("Delta", "Cumulative P&L ($)"), horizontal=True)
@@ -166,9 +166,9 @@ if delta_hedge:
     st.dataframe(df_delta, use_container_width=True)
 
     if bsm.total_pnl >= 0:
-        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Profit')
+        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '+ Profit')
     else:
-        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Loss', delta_color='inverse')
+        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '- Loss')
 
     st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
     if hedge_plots=="Delta":
