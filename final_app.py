@@ -164,11 +164,17 @@ if delta_hedge:
 
     st.success("🌳 Delta-Hedged Portfolio")
     st.dataframe(df_delta, use_container_width=True)
+    
+    hedge_col1, hedge_col2, hedge_col3 = st.columns(3)
 
-    if bsm.total_pnl >= 0:
-        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '+ Profit')
-    else:
-        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '- Loss')
+    with hedge_col1:
+        st.metric("Final Option Payoff ($): ", round(bsm.option_payoff,2))
+    
+    with hedge_col2:
+        if bsm.total_pnl >= 0:
+            st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '+ Profit')
+        else:
+            st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '- Loss')
 
     st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
     if hedge_plots=="Delta":

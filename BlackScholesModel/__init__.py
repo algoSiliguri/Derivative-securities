@@ -21,6 +21,7 @@ class BSM:
         self.iv = 0
         self.brent_iv = 0.01
         self.mid_bid_ask = 0
+        self.option_payoff = 0
         self.total_pnl = 0
 
     ## Determine which option formula to use
@@ -281,11 +282,21 @@ class BSM:
         ut.Utilities.plot_chart(pd_ts)
 
     def __calc_ask_price(self):
+        
         df_od = ut.Utilities.get_option_metric_data()
-        df_ask = df_od.loc[(df_od['Trade dAte'] == '12/08/2015') & (df_od['Strike'] == 2080)]
-        df_ask = df_ask.loc[df_ask['Open Interest']  == df_ask['Open Interest'].max()]
+
+        df_od = df_od.loc[(df_od['Strike'] == self.strike_price) & (df_od['Put=1 Call=0'] == self.call_or_put)]
+        df_ask = df_od.loc[df_od["Open Interest"] == df_od["Open Interest"].max()]
         ask_price = df_ask.iloc[0,5]
         return ask_price
+
+    def __calc_option_payoff(self):
+        
+        var = self.__option_type()
+        if type(self.spot_price) is float:
+            return max(var*(self.spot_price-self.strike_price), 0)
+        elif type(self.spot_price) is np.ndarray:
+            return max(var*(self.spot_price[-1]-self.strike_price), 0)
 
     ## Calculate delta for each of the days up to expiry
     def calc_hedged_portfolio(self, vol_type, trans_costs):
@@ -301,6 +312,7 @@ class BSM:
         df_SPX = self.__get_SPX_data_to_expiry().reset_index(drop=True)
         self.spot_price = df_SPX.iloc[:,5].values
         self.days_to_expiry = (dt.timedelta(days=self.days_to_expiry)+pd.Timestamp(2015,8,12)-df_SPX['Date'])/dt.timedelta(days=1)
+        self.option_payoff = self.__calc_option_payoff()
         
         delta_to_expiry = self.__get_delta()
         
@@ -315,7 +327,8 @@ class BSM:
         cumulative_pnl[0] = call_premium - (val_shares_bought[0] + txn_cost[0])
         for i in range(1, len(self.days_to_expiry)):
             cumulative_pnl[i] = cumulative_pnl[i-1]*np.exp(self.interest_rates*(self.days_to_expiry.values[i]-self.days_to_expiry.values[i-1])/365) - (val_shares_bought[i] + txn_cost[i])
-
+        cumulative_pnl[-1] = cumulative_pnl[-1] + stock_holdings.values[-1] - self.option_payoff
+        
         df_delta = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought, txn_cost, cumulative_pnl])
         df_delta.index = ['DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Shares Bought ($)', 'Trans. Cost ($)', 'Cum. P&L ($)']
         df_delta = df_delta.transpose()
