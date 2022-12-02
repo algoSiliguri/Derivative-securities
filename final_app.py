@@ -65,8 +65,15 @@ st.sidebar.write("---------------")
 delta_hedge = st.sidebar.checkbox("Click to show Delta-Hedged portfolio table 🌳")
 
 if delta_hedge:
+
     vol_type = st.sidebar.radio(
             "Choice of Volatility used in Hedge", ("Implied Volatility", "Forecast Volatility"), horizontal=True)
+    
+    trans_costs = st.sidebar.number_input(
+    "Set Transaction Costs", min_value=0.0, max_value=1.0, value=0.001, step=0.001)
+
+    hedge_plots = st.sidebar.radio(
+            "Choose Plot", ("Delta", "Cumulative P&L ($)"), horizontal=True)
 
 bsm = bs.BSM(days_to_expiry, strike_price, option_type)
 
@@ -154,7 +161,16 @@ if table:
 
 if delta_hedge:
     st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
-    df_delta = bsm.calc_hedged_portfolio(vol_type)
+    df_delta = bsm.calc_hedged_portfolio(vol_type, trans_costs)
+
     st.success("🌳 Delta-Hedged Portfolio")
     st.dataframe(df_delta, use_container_width=True)
-    st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Profit')
+
+    if bsm.total_pnl >= 0:
+        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Profit')
+    else:
+        st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = 'Loss', delta_color='inverse')
+
+    if hedge_plots:
+        ut.Utilities.plot_chart(df_delta[['DTE', 'Cum. P&L ($)']])
+        ut.Utilities.plot_chart(df_delta[['DTE', 'Delta']])

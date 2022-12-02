@@ -87,5 +87,7 @@ class Utilities:
                           "Black Scholes Option Price", "1st-Order Taylor-Series Approximation", "2nd-Order Taylor-Series Approximation"})
 
         if 'Delta' in df_plot:
-            st.line_chart(df_plot, x="DTE", y={
-                          "Delta", "P&L ($)"})                   
+            st.line_chart(df_plot, x="DTE", y="Delta")
+
+        if 'Cum. P&L ($)' in df_plot:
+            st.line_chart(df_plot, x="DTE", y="Cum. P&L ($)")                   
