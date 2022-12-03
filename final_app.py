@@ -156,7 +156,6 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)  
     st.success("😮 Plotting Garch forecasted Voltality for Option Period")
     garch.plot_garch_vol()
-    st.dataframe(df_garch_result, use_container_width=True)
 
     ###### Plot the option strategy ########
     osb = OS.OptionStrategyBuilder(bsm.spot_price, garch.ann_forcast_vol)
