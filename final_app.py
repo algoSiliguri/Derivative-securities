@@ -3,6 +3,8 @@ import BlackScholesModel as bs
 import Utilities as ut
 import pandas as pd
 import Garch as ga
+import OptionStrategy as OS
+
 
                                         ########################### Sidebar #######################
 
@@ -154,7 +156,12 @@ if table:
     st.dataframe(df_garch_result, use_container_width=True)  
     st.success("😮 Plotting Garch forecasted Voltality for Option Period")
     garch.plot_garch_vol()
-    st.dataframe(df_garch_result, use_container_width=True)
+
+    ###### Plot the option strategy ########
+    osb = OS.OptionStrategyBuilder(bsm.spot_price, garch.ann_forcast_vol)
+    st.success("🚀 Plotted Iron Condor Option strategy")
+    osb.ironcondor()
+
 
 if delta_hedge:
     st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
