@@ -341,7 +341,7 @@ class BSM:
         df_delta = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought, txn_cost, cumulative_pnl])
         df_delta.index = ['DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Shares Bought ($)', 'Trans. Cost ($)', 'Cum. P&L ($)']
         df_delta = df_delta.transpose()
-        df_delta['DTE'] = -df_delta['DTE'].astype(int)
+        df_delta['DTE'] = df_delta['DTE'].astype(int)
         df_delta = df_delta.reset_index(drop=True)
 
         self.sum_transaction_costs = np.sum(txn_cost)
