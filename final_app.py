@@ -4,7 +4,13 @@ import Utilities as ut
 import pandas as pd
 import Garch as ga
 import OptionStrategy as OS
-
+ 
+                                        ########################### Page config #######################
+st.set_page_config(
+        page_title="Option Pricing Model",
+        page_icon="🕹️",
+        layout="wide",
+    )
 
                                         ########################### Sidebar #######################
 
