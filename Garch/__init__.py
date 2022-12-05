@@ -4,13 +4,16 @@ from arch import arch_model
 import numpy as np
 import datetime as dt
 
+
 class Garch:
 
     def __init__(self):
 
         self.ann_forcast_vol = 0
+        self.ann_option_vol = 0
         self.ann_realised_vol = 0
         self.vix = 0
+        self.df_forecast = 0
 
     ## Fetch train data from the SPX csv file
     def get_spx_data(self):
@@ -43,18 +46,39 @@ class Garch:
         return self.ann_forcast_vol
 
     ## Calculate the annualised forecasted voltality for option period
-    def calc_ann_realised_vol(self):
+    def calc_ann_option_vol(self):
 
         model_result = self.garch_1_1()
-        self.forecasts = model_result.forecast(horizon=31, reindex=False)
-        df_forecast = pd.DataFrame(self.forecasts.variance[-1:])
-        df_forecast = df_forecast.transpose()
-        ut.Utilities.plot_chart(df_forecast)
+        forecasts = model_result.forecast(horizon=22, reindex=False)
+        self.df_forecast = forecasts.variance[-1:]
+        self.df_forecast = self.df_forecast.transpose()
+        timefactor = 252/len(self.df_forecast)
+        self.ann_option_vol = np.sqrt(
+            timefactor*(np.sum(self.df_forecast[pd.Timestamp(2015, 8, 12)])))
+        return self.ann_option_vol
+
+    ## Calculate the annualised realised voltality for option period
+    def calc_ann_realised_vol(self):
+        file_path = ut.Utilities.getFilePath("SPX")
+        df = pd.read_csv(file_path)
+        df['Date'] = pd.TimedeltaIndex(
+            df['Date'], unit='d') + dt.datetime(1899, 12, 30)
+        df = df.set_index('Date')
+        test_data = df.loc[pd.Timestamp(
+            2015, 8, 12): pd.Timestamp(2015, 9, 11)].copy()
+        test_data['Log_Return'] = np.log(
+            test_data['Adj Close']).diff().mul(100)
+        test_data = test_data.dropna()
+        timefactor = 252/len(test_data)
         self.ann_realised_vol = np.sqrt(
-            (252/31)*(np.sum(df_forecast[pd.Timestamp(2015, 8, 12)])))
+            timefactor*sum(np.square(test_data['Log_Return'])))
         return self.ann_realised_vol
 
+    def plot_garch_vol(self):
+        ut.Utilities.plot_chart(self.df_forecast)
+
     ## Fetch vix voltality from the vix file
+
     def calc_vix_vol(self):
 
         file_path = ut.Utilities.getFilePath("VIX")

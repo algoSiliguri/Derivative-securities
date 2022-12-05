@@ -309,7 +309,7 @@ class BSM:
 
         if vol_type == "Forecast Volatility":
             garch = ga.Garch()
-            self.iv = garch.calc_ann_forecast_vol()/100
+            self.iv = garch.calc_ann_option_vol()/100
 
         df_SPX = self.__get_SPX_data_to_expiry().reset_index(drop=True)
         self.spot_price = df_SPX.iloc[:,5].values
