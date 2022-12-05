@@ -11,9 +11,9 @@ This is an option pricing app based on legacy models like BSM and Garch(1,1) whi
 
 ![image](https://user-images.githubusercontent.com/94735949/205740646-4f0aad74-5a43-40de-85b1-1c20df6dbbfe.png) - Python
 
-![image](https://user-images.githubusercontent.com/94735949/205740561-3a284c7f-cb4e-4e4a-b200-c39b7563dd17.png) - Streamlit
+![image](https://user-images.githubusercontent.com/94735949/205740968-3d6514fc-eee9-4c6e-81fa-488309d8b1a3.png) - Streamlit
 
-![image](https://user-images.githubusercontent.com/94735949/205740792-ebb3db44-7bd5-49ef-bfa1-dfd4ef6ec23f.png) - Git
+![image](https://user-images.githubusercontent.com/94735949/205741016-d14c8879-1b5a-4cbb-b605-eb53a0901720.png) - Git
 
 
 
