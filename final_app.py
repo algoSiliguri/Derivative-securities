@@ -8,7 +8,7 @@ import OptionStrategy as OS
                                         ########################### Page config #######################
 st.set_page_config(
         page_title="Option Pricing Model",
-        page_icon="chart_with_upwards_trend",
+        page_icon="🕹️",
         layout="wide",
     )
 
