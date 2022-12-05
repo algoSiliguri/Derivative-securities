@@ -6,7 +6,6 @@ import Utilities as ut
 import datetime as dt
 import Garch as ga
 
-
 class BSM:
     check_iv = False
     bsm_option_price = 0
@@ -22,6 +21,9 @@ class BSM:
         self.iv = 0
         self.brent_iv = 0.01
         self.mid_bid_ask = 0
+        self.option_premium = 0
+        self.option_payoff = 0
+        self.sum_transaction_costs = 0
         self.total_pnl = 0
 
     ## Determine which option formula to use
@@ -97,8 +99,7 @@ class BSM:
         x = np.arange(-0.3, 0.31, 0.01)
 
         ts1_approx_price = self.calc_option_value() + delta * (self.spot_price*x)
-        ts2_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + \
-            gamma * (self.spot_price*x)**2/2
+        ts2_approx_price = self.calc_option_value() + delta * (self.spot_price*x) + gamma * (self.spot_price*x)**2/2
         return ts1_approx_price, ts2_approx_price
 
     ## Get SPX data from '12/08/2015' to Expiry
@@ -108,8 +109,8 @@ class BSM:
         df = pd.read_csv(file_path)
         df['Date'] = pd.TimedeltaIndex(
             df['Date'], unit='d') + dt.datetime(1899, 12, 30)
-        df_SPX = df.loc[(df['Date'] >= pd.Timestamp(2015, 8, 12))
-                        & (df['Date'] < pd.Timestamp(2015, 8, 12)+dt.timedelta(days=self.days_to_expiry+1))]
+        df_SPX = df.loc[(df['Date'] >= pd.Timestamp(2015, 8, 12) )
+        & (df['Date'] < pd.Timestamp(2015, 8, 12)+dt.timedelta(days=self.days_to_expiry+1))]
         return df_SPX
 
     ## Calculating ineterest rates from zero curve using linear interpolation
@@ -282,17 +283,25 @@ class BSM:
         )
         ut.Utilities.plot_chart(pd_ts)
 
-    def calc_ask_price(self):
+    def __calc_ask_price(self):
+        
         df_od = ut.Utilities.get_option_metric_data()
-        df_ask = df_od.loc[(df_od['Trade dAte'] == '12/08/2015')
-                           & (df_od['Strike'] == 2080)]
-        df_ask = df_ask.loc[df_ask['Open Interest']
-                            == df_ask['Open Interest'].max()]
-        ask_price = df_ask.iloc[0, 5]
+
+        df_od = df_od.loc[(df_od['Strike'] == self.strike_price) & (df_od['Put=1 Call=0'] == self.call_or_put)]
+        df_ask = df_od.loc[df_od["Open Interest"] == df_od["Open Interest"].max()]
+        ask_price = df_ask.iloc[0,5]
         return ask_price
 
+    def __calc_option_payoff(self):
+        
+        var = self.__option_type()
+        if type(self.spot_price) is float:
+            return max(var*(self.spot_price-self.strike_price), 0)
+        elif type(self.spot_price) is np.ndarray:
+            return max(var*(self.spot_price[-1]-self.strike_price), 0)
+
     ## Calculate delta for each of the days up to expiry
-    def calc_hedged_portfolio(self, vol_type):
+    def calc_hedged_portfolio(self, vol_type, trans_costs):
 
         init_dte = self.days_to_expiry
         init_spot = self.spot_price
@@ -300,39 +309,46 @@ class BSM:
 
         if vol_type == "Forecast Volatility":
             garch = ga.Garch()
-            self.iv = garch.calc_ann_forecast_vol()/100
+            self.iv = garch.calc_ann_option_vol()/100
 
         df_SPX = self.__get_SPX_data_to_expiry().reset_index(drop=True)
-        self.spot_price = df_SPX.iloc[:, 5].values
-        self.days_to_expiry = (dt.timedelta(days=self.days_to_expiry) +
-                               pd.Timestamp(2015, 8, 12)-df_SPX['Date'])/dt.timedelta(days=1)
-
+        self.spot_price = df_SPX.iloc[:,5].values
+        self.days_to_expiry = (dt.timedelta(days=self.days_to_expiry)+pd.Timestamp(2015,8,12)-df_SPX['Date'])/dt.timedelta(days=1)
+        self.option_payoff = self.__calc_option_payoff()
+        
         delta_to_expiry = self.__get_delta()
-
+        
         stock_holdings = delta_to_expiry*self.spot_price
         change_holdings = delta_to_expiry.diff()
         change_holdings.iloc[0] = delta_to_expiry.iloc[0]
+
         val_shares_bought = change_holdings*self.spot_price
-        txn_cost = abs(val_shares_bought)*0.001
-        call_premium = self.calc_ask_price() * 0.999
-        pnl = call_premium * \
-            np.exp(0.005*(self.days_to_expiry.index/365)) - \
-            (val_shares_bought + txn_cost)
+        val_shares_bought.iloc[-1] = val_shares_bought.iloc[-1]+stock_holdings.iloc[-1]
+        
+        self.option_premium = self.__calc_ask_price()
+        txn_cost = abs(val_shares_bought)*trans_costs + self.option_premium*trans_costs
+    
+        cumulative_pnl = np.zeros(len(delta_to_expiry))
+        bank = np.zeros(len(delta_to_expiry))
+        bank[0] = self.option_premium - (val_shares_bought[0] + txn_cost[0])
+        cumulative_pnl[0] = bank[0] + stock_holdings[0]
+        
+        for i in range(1, len(self.days_to_expiry)):
+            bank[i] = bank[i-1]*np.exp(self.interest_rates*(self.days_to_expiry.values[i]-self.days_to_expiry.values[i-1])/365) - (val_shares_bought[i] + txn_cost[i])
+            cumulative_pnl[i] = bank[i]+stock_holdings.values[i]
+        cumulative_pnl[-1] = cumulative_pnl[-1] - self.option_payoff + stock_holdings.values[-1]
+        
+        df_delta = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought, txn_cost, cumulative_pnl])
+        df_delta.index = ['DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Shares Bought ($)', 'Trans. Cost ($)', 'Cum. P&L ($)']
+        df_delta = df_delta.transpose()
+        df_delta['DTE'] = df_delta['DTE'].astype(int)
+        df_delta = df_delta.reset_index(drop=True)
 
-        df_delta_iv = pd.DataFrame(data=[self.days_to_expiry, delta_to_expiry,
-                                   self.spot_price, stock_holdings, val_shares_bought, txn_cost, pnl])
-        df_delta_iv.index = [
-            'DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Value of Shares Bought ($)', 'Transaction cost ($)', 'P&L ($)']
-        df_delta_iv = df_delta_iv.transpose()
-        df_delta_iv['DTE'] = df_delta_iv['DTE'].astype(int)
-        df_delta_iv = df_delta_iv.reset_index(drop=True)
-
-        ut.Utilities.plot_chart(df_plot=df_delta_iv)
-
-        self.total_pnl = df_delta_iv['P&L ($)'].sum()
+        self.sum_transaction_costs = np.sum(txn_cost)
+        self.total_pnl = df_delta['Cum. P&L ($)'].iloc[-1]
 
         self.days_to_expiry = init_dte
         self.spot_price = init_spot
         self.iv = init_vol
 
-        return df_delta_iv
+        return df_delta

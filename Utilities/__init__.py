@@ -84,14 +84,19 @@ class Utilities:
 
         if '1st-Order Taylor-Series Approximation' in df_plot:
             st.line_chart(df_plot, x="Spot Price", y={
-                "Black Scholes Option Price", "1st-Order Taylor-Series Approximation", "2nd-Order Taylor-Series Approximation"})
+                           "Black Scholes Option Price", "1st-Order Taylor-Series Approximation", "2nd-Order Taylor-Series Approximation"})
 
         if pd.Timestamp(2015, 8, 12) in df_plot:
-            st.line_chart(df_plot)
+            st.line_chart(df_plot)                   
 
         if 'Delta' in df_plot:
-            st.line_chart(df_plot, x="DTE", y={
-                          "Delta", "P&L ($)"})
-        
+            df_plot['DTE'] = -df_plot['DTE']
+            st.line_chart(df_plot, x="DTE", y="Delta")
+
+        if 'Cum. P&L ($)' in df_plot:
+            df_plot['DTE'] = -df_plot['DTE']
+            st.line_chart(df_plot, x="DTE")
+
         if 'Iron Condor Payoff' in df_plot:
             st.line_chart(df_plot,x="Spot Price",y="Iron Condor Payoff")
+
