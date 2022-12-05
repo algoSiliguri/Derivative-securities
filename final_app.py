@@ -182,8 +182,9 @@ if delta_hedge:
         else:
             st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '- Loss')
 
-    st.success("🚀 Plotted Delta and Portfolio P&L against the Days to Expiry")
     if hedge_plots=="Delta":
+        st.success("🚀 Plotted Delta against the Days to Expiry")
         ut.Utilities.plot_chart(df_delta[['DTE', 'Delta']])
     else:
+        st.success("🚀 Plotted Cumulative P&L on Trade against the Days to Expiry")
         ut.Utilities.plot_chart(df_delta[['DTE', "Cum. P&L ($)"]])
