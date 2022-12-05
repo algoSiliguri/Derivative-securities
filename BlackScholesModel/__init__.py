@@ -21,7 +21,9 @@ class BSM:
         self.iv = 0
         self.brent_iv = 0.01
         self.mid_bid_ask = 0
+        self.option_premium = 0
         self.option_payoff = 0
+        self.sum_transaction_costs = 0
         self.total_pnl = 0
 
     ## Determine which option formula to use
@@ -319,15 +321,22 @@ class BSM:
         stock_holdings = delta_to_expiry*self.spot_price
         change_holdings = delta_to_expiry.diff()
         change_holdings.iloc[0] = delta_to_expiry.iloc[0]
+
         val_shares_bought = change_holdings*self.spot_price
+        val_shares_bought.iloc[-1] = val_shares_bought.iloc[-1]+stock_holdings.iloc[-1]
         
+        self.option_premium = self.__calc_ask_price()
+        txn_cost = abs(val_shares_bought)*trans_costs + self.option_premium*trans_costs
+    
         cumulative_pnl = np.zeros(len(delta_to_expiry))
-        txn_cost = abs(val_shares_bought)*trans_costs
-        call_premium = self.__calc_ask_price() * (1-trans_costs)
-        cumulative_pnl[0] = call_premium - (val_shares_bought[0] + txn_cost[0])
+        bank = np.zeros(len(delta_to_expiry))
+        bank[0] = self.option_premium - (val_shares_bought[0] + txn_cost[0])
+        cumulative_pnl[0] = bank[0] + stock_holdings[0]
+        
         for i in range(1, len(self.days_to_expiry)):
-            cumulative_pnl[i] = cumulative_pnl[i-1]*np.exp(self.interest_rates*(self.days_to_expiry.values[i]-self.days_to_expiry.values[i-1])/365) - (val_shares_bought[i] + txn_cost[i])
-        cumulative_pnl[-1] = cumulative_pnl[-1] + stock_holdings.values[-1] - self.option_payoff
+            bank[i] = bank[i-1]*np.exp(self.interest_rates*(self.days_to_expiry.values[i]-self.days_to_expiry.values[i-1])/365) - (val_shares_bought[i] + txn_cost[i])
+            cumulative_pnl[i] = bank[i]+stock_holdings.values[i]
+        cumulative_pnl[-1] = cumulative_pnl[-1] - self.option_payoff + stock_holdings.values[-1]
         
         df_delta = pd.DataFrame(data = [self.days_to_expiry, delta_to_expiry, self.spot_price, stock_holdings, val_shares_bought, txn_cost, cumulative_pnl])
         df_delta.index = ['DTE', 'Delta', 'Spot Price ($)', 'Stock Holdings ($)', 'Shares Bought ($)', 'Trans. Cost ($)', 'Cum. P&L ($)']
@@ -335,6 +344,7 @@ class BSM:
         df_delta['DTE'] = df_delta['DTE'].astype(int)
         df_delta = df_delta.reset_index(drop=True)
 
+        self.sum_transaction_costs = np.sum(txn_cost)
         self.total_pnl = df_delta['Cum. P&L ($)'].iloc[-1]
 
         self.days_to_expiry = init_dte

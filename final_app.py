@@ -165,12 +165,18 @@ if delta_hedge:
     st.success("🌳 Delta-Hedged Portfolio")
     st.dataframe(df_delta, use_container_width=True)
     
-    hedge_col1, hedge_col2, hedge_col3 = st.columns(3)
+    hedge_col1, hedge_col2, hedge_col3, hedge_col4 = st.columns(4)
 
     with hedge_col1:
+        st.metric("Sale Price of Option ($): ", round(bsm.option_premium, 2))
+
+    with hedge_col2:
         st.metric("Final Option Payoff ($): ", round(bsm.option_payoff,2))
     
-    with hedge_col2:
+    with hedge_col3:
+        st.metric("Total Transaction Costs ($): ", round(bsm.sum_transaction_costs,2))
+
+    with hedge_col4:
         if bsm.total_pnl >= 0:
             st.metric("Total Portfolio Profit and Loss ($): ", round(bsm.total_pnl,2), delta = '+ Profit')
         else:
