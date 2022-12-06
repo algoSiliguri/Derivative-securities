@@ -93,5 +93,5 @@ class Utilities:
             st.line_chart(df_plot, x="DTE", y={
                           "Delta", "P&L ($)"})
         
-        if 'Iron Condor Payoff' in df_plot:
-            st.line_chart(df_plot,x="Spot Price",y="Iron Condor Payoff")
+        if 'Iron Condor Payoff ($)' in df_plot:
+            st.line_chart(df_plot,x="Spot Price",y="Iron Condor Payoff ($)")
