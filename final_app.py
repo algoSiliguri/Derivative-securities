@@ -178,7 +178,7 @@ if table:
     out = osb.ironcondor()
     st.success("🌳 Iron condor P&L")
     st.dataframe(out,use_container_width=True)
-    st.metric("Profit and Loss from Ironcondor startegy ($): ", out.loc['Value on expiry($)','Total'], delta = '-Loss')
+    st.metric("Profit and Loss from Ironcondor startegy ($): ", round(out.loc['Value on expiry($)','Total'],3), delta = '-Loss')
 
 
 if delta_hedge:
