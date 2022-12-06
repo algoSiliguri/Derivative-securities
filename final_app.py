@@ -10,6 +10,9 @@ st.set_page_config(
         page_title="Option Pricing Model",
         page_icon="🕹️",
         layout="wide",
+        menu_items={
+                'About': "### A Project by Gavin, Koustav, Ayushi, George and Karthik"
+        }
     )
 
                                         ########################### Sidebar #######################
