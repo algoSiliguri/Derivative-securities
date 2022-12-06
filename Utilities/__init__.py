@@ -78,8 +78,8 @@ class Utilities:
             st.line_chart(df_plot, x="Spot Price", y={
                           "Black Scholes Option Price", "Intrinsic Value of Option"})
 
-        if 'Implied Volatility (Percent)' in df_plot:
-            st.line_chart(df_plot, x="Implied Volatility (Percent)",
+        if 'Implied Volatility (%)' in df_plot:
+            st.line_chart(df_plot, x="Implied Volatility (%)",
                           y="Black Scholes Option Price")
 
         if '1st-Order Taylor-Series Approximation' in df_plot:
@@ -87,6 +87,7 @@ class Utilities:
                            "Black Scholes Option Price", "1st-Order Taylor-Series Approximation", "2nd-Order Taylor-Series Approximation"})
 
         if pd.Timestamp(2015, 8, 12) in df_plot:
+            df_plot = df_plot.rename(columns={df_plot.columns[0]: 'Daily Forecast Volatility (%)'})
             st.line_chart(df_plot)                   
 
         if 'Delta' in df_plot:

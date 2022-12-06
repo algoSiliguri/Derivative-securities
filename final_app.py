@@ -29,15 +29,17 @@ days_to_expiry = st.sidebar.slider(
     "Days to Expiry", value=30, min_value=7, max_value=100)
 
 ## Radio button to choose option type
-option_type = st.sidebar.radio(
-    "Select your option type - Call-> 0 | Put-> 1", (0, 1))
+if st.sidebar.radio("Select your option type: ", ['Call', 'Put']) == 'Call':
+    option_type = 0
+else:
+    option_type = 1
 
 ## Input paramenter for strike price selection
 strike_price = st.sidebar.number_input(
-    "Enter a strike price for your option (750-2500)", min_value=750, max_value=2500, value=2080, step=10)
+    "Enter a strike price for your option (750-2500)", min_value=750, max_value=2500, value=2090, step=10)
 
 if strike_price not in ut.Utilities.get_strike_prices(option_type):
-    st.sidebar.error("Strike price not in given data!!! Please renter!!!")
+    st.sidebar.error("Strike price not in given data!!! Please re-enter!!!")
     st.stop()
 
 ## Checkbox to Calculate Iv using Brent's algorithm
@@ -160,25 +162,25 @@ if charts:
 if table:
 
     garch = ga.Garch()
-    garch_result = [['Annualised Option Period Forecasted Voltality', round(garch.calc_ann_option_vol(),4)],
-                    ['Annualised Option Period Realised Voltality', round(garch.calc_ann_realised_vol(),4)],
-                    ['VIX Voltality For Trade Date', round(garch.calc_vix_vol(),4)],
-                    ['Implied Voltality For Trade Date', round(bsm.iv*100,4)]]
+    garch_result = [['Annualised Option Period Forecasted Volatility', round(garch.calc_ann_option_vol(),4)],
+                    ['Annualised Option Period Realised Volatility', round(garch.calc_ann_realised_vol(),4)],
+                    ['VIX Volatility For Trade Date', round(garch.calc_vix_vol(),4)],
+                    ['Implied Volatility For Trade Date', round(bsm.iv*100,4)]]
 
     df_garch_result = pd.DataFrame(garch_result,columns=['Metric','Value'])
 
     st.success("🔮 Garch (1,1) forecasted results tabulated against VIX and IV")
     st.dataframe(df_garch_result, use_container_width=True)  
-    st.success("😮 Plotting Garch forecasted Voltality for Option Period")
+    st.success("😮 Plotting Garch forecasted Volatility for Option Period")
     garch.plot_garch_vol()
 
     ###### Plot the option strategy ########
     osb = OS.OptionStrategyBuilder(bsm.spot_price, garch.ann_option_vol)
-    st.success("🚀 Plotted Iron Condor Option strategy")
+    st.success("🚀 Plotted Iron Condor option strategy")
     out = osb.ironcondor()
-    st.success("🌳 Iron condor P&L")
+    st.success("🌳 Iron Condor P&L")
     st.dataframe(out,use_container_width=True)
-    st.metric("Profit and Loss from Ironcondor startegy ($): ", round(out.loc['Value on expiry($)','Total'],3), delta = '-Loss')
+    st.metric("Profit and Loss from Iron Condor strategy ($): ", round(out.loc['Value on expiry($)','Total'],3), delta = '-Loss')
 
 
 if delta_hedge:

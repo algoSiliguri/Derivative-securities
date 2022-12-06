@@ -258,7 +258,7 @@ class BSM:
         self.iv = init_iv
 
         pd_sigma = pd.DataFrame(
-            {"Implied Volatility (Percent)": sigma_list * 100,
+            {"Implied Volatility (%)": sigma_list * 100,
              "Black Scholes Option Price": sigma_op_list}
         )
         ut.Utilities.plot_chart(pd_sigma)
@@ -326,7 +326,8 @@ class BSM:
         val_shares_bought.iloc[-1] = val_shares_bought.iloc[-1]+stock_holdings.iloc[-1]
         
         self.option_premium = self.__calc_ask_price()
-        txn_cost = abs(val_shares_bought)*trans_costs + self.option_premium*trans_costs
+        txn_cost = abs(val_shares_bought)*trans_costs
+        txn_cost[0] = txn_cost[0] + self.option_premium*trans_costs
     
         cumulative_pnl = np.zeros(len(delta_to_expiry))
         bank = np.zeros(len(delta_to_expiry))
