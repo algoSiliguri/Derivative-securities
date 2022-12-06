@@ -160,11 +160,10 @@ if charts:
 if table:
 
     garch = ga.Garch()
-    garch_result = [['Annualised Historic Forecasted Voltality', round(garch.calc_ann_forecast_vol(),4)],
-                    ['Annualised Option Period Forecasted Voltality', round(garch.calc_ann_option_vol(),4)],
+    garch_result = [['Annualised Option Period Forecasted Voltality', round(garch.calc_ann_option_vol(),4)],
                     ['Annualised Option Period Realised Voltality', round(garch.calc_ann_realised_vol(),4)],
                     ['VIX Voltality For Trade Date', round(garch.calc_vix_vol(),4)],
-                    ['Implied Voltality For Trade Date (%)', round(bsm.iv*100,4)]]
+                    ['Implied Voltality For Trade Date', round(bsm.iv*100,4)]]
 
     df_garch_result = pd.DataFrame(garch_result,columns=['Metric','Value'])
 
@@ -174,7 +173,7 @@ if table:
     garch.plot_garch_vol()
 
     ###### Plot the option strategy ########
-    osb = OS.OptionStrategyBuilder(bsm.spot_price, garch.ann_forcast_vol)
+    osb = OS.OptionStrategyBuilder(bsm.spot_price, garch.ann_option_vol)
     st.success("🚀 Plotted Iron Condor Option strategy")
     out = osb.ironcondor()
     st.success("🌳 Iron condor P&L")

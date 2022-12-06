@@ -9,7 +9,6 @@ class Garch:
 
     def __init__(self):
 
-        self.ann_forcast_vol = 0
         self.ann_option_vol = 0
         self.ann_realised_vol = 0
         self.vix = 0
@@ -23,7 +22,7 @@ class Garch:
         df['Date'] = pd.TimedeltaIndex(
             df['Date'], unit='d') + dt.datetime(1899, 12, 30)
         df = df.set_index('Date')
-        train_data = df.loc[: pd.Timestamp(2015, 8, 12)].copy()
+        train_data = df.loc[pd.Timestamp(2005,8,12): pd.Timestamp(2015,8,12)].copy()
         train_data['Log_Return'] = np.log(
             train_data['Adj Close']).diff().mul(100)
         train_data = train_data.dropna()
@@ -35,15 +34,6 @@ class Garch:
         model = arch_model(self.get_spx_data(), p=1, q=1,
                            mean='constant', vol='GARCH', dist='normal')
         return model.fit(update_freq=5)
-
-    ## Calculate the annualised forecasted voltality for historic returns
-    def calc_ann_forecast_vol(self):
-
-        model_result = self.garch_1_1()
-        timefactor = 252/len(model_result.conditional_volatility)
-        self.ann_forcast_vol = np.sqrt(
-            timefactor*sum(model_result.conditional_volatility))
-        return self.ann_forcast_vol
 
     ## Calculate the annualised forecasted voltality for option period
     def calc_ann_option_vol(self):
@@ -78,7 +68,6 @@ class Garch:
         ut.Utilities.plot_chart(self.df_forecast)
 
     ## Fetch vix voltality from the vix file
-
     def calc_vix_vol(self):
 
         file_path = ut.Utilities.getFilePath("VIX")
