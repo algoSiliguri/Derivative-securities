@@ -173,7 +173,10 @@ if table:
     ###### Plot the option strategy ########
     osb = OS.OptionStrategyBuilder(bsm.spot_price, garch.ann_forcast_vol)
     st.success("🚀 Plotted Iron Condor Option strategy")
-    osb.ironcondor()
+    out = osb.ironcondor()
+    st.success("🌳 Iron condor P&L")
+    st.dataframe(out,use_container_width=True)
+    st.metric("Profit and Loss from Ironcondor startegy ($): ", out.loc['Value on expiry($)','Total'], delta = '-Loss')
 
 
 if delta_hedge:
