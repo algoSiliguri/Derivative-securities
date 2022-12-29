@@ -5,7 +5,7 @@
 ![image](https://user-images.githubusercontent.com/94735949/205714936-9cac193c-c253-4f59-bf9b-847d9a0e5c47.png)
 
 
-This is an option pricing app based on legacy models like BSM and Garch(1,1) which takes in inputs like Days to expiry, Strike price, Spot price, Voltality etc to output the BSM calculated Option Price. It also used Garch(1,1) model to forecast option period volatility and draws comparison to Vix in order to assess the differences between the both. Based on the forecasted voltality trend, the app also builds a Iron condor hedging strategy to trade voltality and manage the risk.
+This is an option pricing app based on legacy models like BSM and Garch(1,1) which takes in inputs like Days to expiry, Strike price, Spot price, Volatility etc to output the BSM calculated Option Price. It also used Garch(1,1) model to forecast option period volatility and draws comparison to Vix in order to assess the differences between the both. Based on the forecasted volatility trend, the app also builds a Iron condor hedging strategy to trade volatility and manage the risk.
 
 ### Tech Stack
 - Python
