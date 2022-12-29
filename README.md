@@ -14,4 +14,4 @@ This is an option pricing app based on legacy models like BSM and Garch(1,1) whi
 
 
 
-*[While the trade date is fixed for this app, rest all parameters are flexible which makes the model valuable for a real life option price evaluation. This was initially done as a academic project by UCD Sumrfit Financial Data Science students, albeit the aim of the project is realised, owing to our flexible codebase we are positive that in further updates, with time, we can release more flexibilty for versatile use by all]*
+*[While the trade date is fixed for this app, rest all parameters are flexible which makes the model valuable for a real life option price evaluation. This was initially done as a academic project by UCD Smurfit Financial Data Science students, albeit the aim of the project is realised, owing to our flexible codebase we are positive that in further updates, with time, we can release more flexibilty for versatile use by all]*
